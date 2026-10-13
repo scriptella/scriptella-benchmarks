@@ -11,7 +11,20 @@ include unchanged measurements, dependency metadata, individual values, medians,
 and coarse RAM observations. These are exploratory results for that workload and
 machine, not universal performance claims.
 
-![Median CSV import durations across two local runs](docs/results/2026-10-12-intel-i9/comparison.svg)
+With **Scriptella 1.6 batch size 1000**, one million rows took a median of
+**14.79 s on PostgreSQL** and **9.52 s on MariaDB**. csvsql chunk 1000 took
+557.95 s and 597.05 s, respectively: Scriptella was **37.7× and 62.7× faster**
+in these two local runs. Handwritten JDBC batching remained faster than Scriptella,
+at 13.63 s and 6.65 s. Chunking and JDBC batching use different mechanisms.
+
+Coarse first-run MariaDB memory observations were about **188 MiB for batched
+Scriptella** and **895 MiB for csvsql**. These are sampled process-memory
+observations, not precise RAM benchmarks. The detailed report also includes
+unbatched cases and PostgreSQL's native COPY reference.
+
+![PostgreSQL batched CSV import durations](docs/results/2026-10-12-intel-i9/postgres.svg)
+
+![MariaDB batched CSV import durations](docs/results/2026-10-12-intel-i9/mariadb.svg)
 
 ## Run the comparison
 

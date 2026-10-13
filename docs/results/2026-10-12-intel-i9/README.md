@@ -5,9 +5,11 @@ eleven cases. Every import passed independent row-count and first/middle/last
 value checks before its timing was recorded. This is an exploratory engineering
 experiment, not an industry-grade benchmark or a universal performance claim.
 
-![Median CSV import durations](comparison.svg)
+![PostgreSQL batched CSV import durations](postgres.svg)
 
-The chart uses a **logarithmic duration axis**; read the printed seconds for
+![MariaDB batched CSV import durations](mariadb.svg)
+
+The charts focus on the batched/chunked comparison and use a **logarithmic duration axis**; read the printed seconds for
 absolute differences. Each value is the median of two observations, so it is the
 midpoint of those two observations. Duration and throughput medians are computed
 independently. The [full report](report.md) includes all individual values,
@@ -79,6 +81,6 @@ python3 -m venv /tmp/scriptella-chart
 /tmp/scriptella-chart/bin/python tools/plot-results.py docs/results/2026-10-12-intel-i9
 ```
 
-The generator reads the two unchanged `measurements.csv` files and writes an SVG
+The generator reads the two unchanged `measurements.csv` files and writes separate PostgreSQL and MariaDB SVGs
 with selectable text, exact duration labels and an accessible description. The
 optional PNG preview is for local inspection and is not published evidence.

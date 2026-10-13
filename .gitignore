@@ -3,4 +3,4 @@
 /.env
 /.agent-logs/
 
-/docs/results/**/comparison-preview.png
+/docs/results/**/*-preview.png
