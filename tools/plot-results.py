@@ -36,7 +36,6 @@ for db, database in [('postgres', 'PostgreSQL 17.11'), ('mariadb', 'MariaDB 11.8
     fig.text(.06, .93, 'Scriptella CSV import benchmark', color=muted, fontsize=13, weight='bold')
     fig.text(.06, .855, f'Batched CSV imports. {database}.', color=ink, fontsize=25, weight='bold')
     fig.text(.06, .801, 'One million rows · median of two local runs', color=muted, fontsize=12)
-    fig.text(.94, .801, 'Lower duration is faster', ha='right', color=muted, fontsize=11, fontstyle='italic')
     fig.text(.06, .70, f'{ratio:.1f}×', color=colors['scriptella'], fontsize=31, weight='bold')
     fig.text(.205, .72, 'Scriptella batch 1000 vs csvsql chunk 1000', color=ink, fontsize=12)
     fig.text(.205, .683, 'Ratio of median durations; chunking mechanisms differ.', color=muted, fontsize=10)
@@ -59,6 +58,7 @@ for db, database in [('postgres', 'PostgreSQL 17.11'), ('mariadb', 'MariaDB 11.8
         ax.barh(y, value-1, left=1, height=.43, color=colors[implementation], zorder=3)
         ax.text(value*1.12, y, f'{value:.2f} s', va='center', color=ink, weight='bold', fontsize=11)
     ax.set_xlabel('Duration in seconds · logarithmic axis', color=muted, labelpad=11, fontsize=10)
+    fig.text(.60, .181, 'Lower duration is faster', ha='center', color=muted, fontsize=10, fontstyle='italic')
     fig.text(.06, .105, 'Intel i9-9980HK · Colima x86_64, 4 CPUs / 6 GiB · Scriptella 1.6 · benchmark v2', color=muted, fontsize=9)
     note = 'COPY is a separate native reference. ' if db == 'postgres' else ''
     fig.text(.06, .062, note+'Exploratory results for this machine and fixture; not universal performance claims.', color=muted, fontsize=9)
