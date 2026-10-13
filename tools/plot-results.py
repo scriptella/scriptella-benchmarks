@@ -33,7 +33,7 @@ ns = '{http://www.w3.org/2000/svg}'
 for db, database in [('postgres', 'PostgreSQL 17.11'), ('mariadb', 'MariaDB 11.8.8')]:
     ratio = median[(db, 'csvsql', 'chunk_1000')] / median[(db, 'scriptella', 'batch_1000')]
     fig = plt.figure(figsize=(12.2, 6.2), facecolor=background)
-    fig.text(.06, .93, 'SCRIPTELLA  /  CSV IMPORT EXPERIMENT', color=muted, fontsize=10, weight='bold')
+    fig.text(.06, .93, 'Scriptella CSV import benchmark', color=muted, fontsize=13, weight='bold')
     fig.text(.06, .855, f'Batched CSV imports. {database}.', color=ink, fontsize=25, weight='bold')
     fig.text(.06, .801, 'One million rows · median of two local runs · lower duration is faster', color=muted, fontsize=12)
     fig.text(.06, .70, f'{ratio:.1f}×', color=colors['scriptella'], fontsize=31, weight='bold')
