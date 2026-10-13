@@ -1,0 +1,53 @@
+name: scriptella-benchmarks
+
+services:
+  postgres:
+    image: postgres:17.11-alpine3.24
+    command: [postgres, -c, timezone=UTC]
+    environment:
+      POSTGRES_DB: benchmark
+      POSTGRES_USER: benchmark
+      POSTGRES_PASSWORD: benchmark
+      TZ: UTC
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U benchmark -d benchmark']
+      interval: 2s
+      timeout: 5s
+      retries: 60
+  mariadb:
+    image: mariadb:11.8.8
+    command: ['--default-time-zone=+00:00']
+    environment:
+      MARIADB_DATABASE: benchmark
+      MARIADB_USER: benchmark
+      MARIADB_PASSWORD: benchmark
+      MARIADB_ROOT_PASSWORD: benchmark_root
+      TZ: UTC
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 2s
+      timeout: 5s
+      retries: 60
+      start_period: 5s
+  benchmark:
+    build:
+      context: .
+      args:
+        SCRIPTELLA_VERSION: ${SCRIPTELLA_VERSION:-1.6}
+        BENCHMARK_REVISION: ${BENCHMARK_REVISION:-n/a}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mariadb:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT_ID: ${ENVIRONMENT_ID:-local-unspecified}
+      ENVIRONMENT_DESCRIPTION: ${ENVIRONMENT_DESCRIPTION:-Unspecified local Docker environment}
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/benchmark
+      MARIADB_URL: jdbc:mariadb://mariadb:3306/benchmark
+      DB_USER: benchmark
+      DB_PASSWORD: benchmark
+      TZ: UTC
+    volumes:
+      - ./results:/results
+    command: ['${BENCHMARK_COMMAND:-run}']

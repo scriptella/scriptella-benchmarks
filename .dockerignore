@@ -1,0 +1,10 @@
+.git
+target
+results
+.env
+.agent-logs
+
+AGENTS.local.md
+.github
+docs
+tools

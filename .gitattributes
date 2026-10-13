@@ -1,0 +1,3 @@
+# Preserve recorded evidence bytes, including original CSV line endings.
+docs/results/**/*.csv -text whitespace=cr-at-eol
+docs/results/**/*.properties -text

@@ -1,0 +1,6 @@
+/target/
+/results/
+/.env
+/.agent-logs/
+
+/docs/results/**/comparison-preview.png
