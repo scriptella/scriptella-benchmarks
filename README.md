@@ -4,27 +4,49 @@ An exploratory experiment comparing CSV imports with Scriptella, handwritten
 JDBC, and csvsql, with PostgreSQL native COPY as a separate reference. The fixed eleven-case comparison runs on
 PostgreSQL and MariaDB, and compatible repeated runs can be aggregated.
 
-## Published local results
+## Published results
 
-[Two local runs on an Intel i9 / Colima machine](docs/results/2026-10-12-intel-i9/README.md)
-include unchanged measurements, dependency metadata, individual values, medians,
-and coarse RAM observations. These are exploratory results for that workload and
-machine, not universal performance claims.
+Two result sets import the same million-row fixture with Scriptella 1.6:
 
-With **Scriptella 1.6 batch size 1000**, one million rows took a median of
-**14.79 s on PostgreSQL** and **9.52 s on MariaDB**. csvsql chunk 1000 took
-557.95 s and 597.05 s, respectively: Scriptella was **37.7× and 62.7× faster**
-in these two local runs. Handwritten JDBC batching remained faster than Scriptella,
-at 13.63 s and 6.65 s. Chunking and JDBC batching use different mechanisms.
+- **[Local development machine](docs/results/2026-10-12-local/README.md):**
+  medians from two complete runs, plus coarse first-run RAM observations.
+- **[GitHub Actions runner](docs/results/2026-10-13-ci/README.md):**
+  one complete run on Ubuntu 24.04, with measurements and dependency metadata.
 
-Coarse first-run MariaDB memory observations were about **188 MiB for batched
-Scriptella** and **895 MiB for csvsql**. These are sampled process-memory
-observations, not precise RAM benchmarks. The detailed report also includes
-unbatched cases and PostgreSQL's native COPY reference.
+| Environment | Database | Scriptella batch 1000 | JDBC batch 1000 | csvsql chunk 1000 | Scriptella vs csvsql |
+|---|---|---:|---:|---:|---:|
+| Local development machine | PostgreSQL | 14.79 s | 13.63 s | 557.95 s | 37.7× |
+| Local development machine | MariaDB | 9.52 s | 6.65 s | 597.05 s | 62.7× |
+| GitHub Actions | PostgreSQL | 6.86 s | 5.85 s | 221.81 s | 32.3× |
+| GitHub Actions | MariaDB | 4.45 s | 3.00 s | 214.92 s | 48.3× |
 
-![PostgreSQL batched CSV import durations](docs/results/2026-10-12-intel-i9/postgres.svg)
+Batched Scriptella substantially outperformed csvsql's documented chunk-1000
+import path in both environments; handwritten JDBC batching was faster than
+Scriptella. Chunking and JDBC batching use different mechanisms. These are
+exploratory results for the listed workload and environments, not universal
+performance claims. The result sets remain separate and are never pooled.
 
-![MariaDB batched CSV import durations](docs/results/2026-10-12-intel-i9/mariadb.svg)
+### Local development machine
+
+![Local PostgreSQL batched CSV import durations](docs/results/2026-10-12-local/postgres.svg)
+
+![Local MariaDB batched CSV import durations](docs/results/2026-10-12-local/mariadb.svg)
+
+Observed first-run MariaDB process memory was about **188 MiB for batched
+Scriptella**, **146 MiB for batched JDBC**, and **895 MiB for csvsql**.
+These are coarse observations, not precise peak-RAM benchmarks.
+
+![Coarse local process-memory observations](docs/results/2026-10-12-local/memory.svg)
+
+### GitHub Actions runner
+
+![CI PostgreSQL batched CSV import durations](docs/results/2026-10-13-ci/postgres.svg)
+
+![CI MariaDB batched CSV import durations](docs/results/2026-10-13-ci/mariadb.svg)
+
+Full reports, individual measurements, environment details and limitations are
+linked above. CI did not measure RAM. The detailed reports also retain unbatched
+cases and PostgreSQL's separate native COPY reference.
 
 ## Run the comparison
 
@@ -169,7 +191,7 @@ To regenerate the published local report with the benchmark image:
 
 ```sh
 docker compose run --build --no-deps --rm \
-  -v "$PWD/docs/results/2026-10-12-intel-i9:/results" benchmark aggregate /results
+  -v "$PWD/docs/results/2026-10-12-local:/results" benchmark aggregate /results
 ```
 Scriptella releases remain separate; Git revision is traceability only.
 Partial runs contribute only verified cases; comparisons with missing cases are omitted.

@@ -48,6 +48,8 @@ has been retroactively assigned to these runs.
 
 ## Coarse RAM observations
 
+![Coarse local process-memory observations](memory.svg)
+
 The first run included lightweight one-second process-memory sampling during the
 MariaDB cases. Observed resident high-water marks were approximately **188 MiB
 for batched Scriptella**, **146 MiB for batched JDBC**, and **895 MiB for csvsql**.
@@ -78,9 +80,9 @@ The optional chart generator needs matplotlib, independently of the benchmark:
 ```sh
 python3 -m venv /tmp/scriptella-chart
 /tmp/scriptella-chart/bin/pip install matplotlib==3.10.8
-/tmp/scriptella-chart/bin/python tools/plot-results.py docs/results/2026-10-12-intel-i9
+/tmp/scriptella-chart/bin/python tools/plot-results.py docs/results/2026-10-12-local
 ```
 
-The generator reads the two unchanged `measurements.csv` files and writes separate PostgreSQL and MariaDB SVGs
+The generator reads the two unchanged `measurements.csv` files and writes separate PostgreSQL and MariaDB timing SVGs and a local-memory SVG
 with selectable text, exact duration labels and an accessible description. The
 optional PNG preview is for local inspection and is not published evidence.
