@@ -9,7 +9,8 @@ and full benchmark configuration](docs/scriptella-etl.md).
 Version 3 simplifies Scriptella's CSV setup by removing benchmark-specific
 custom formatter classes and using the CSV driver's built-in formatters. This
 is a configuration change; it is not a claim of improved performance. The
-official v3 measurements will come from the full CI run.
+[completed v3 CI run](docs/results/2026-10-14-ci-v3/README.md) provides the
+current results.
 
 ## Project goal
 
@@ -20,50 +21,35 @@ Scriptella's performance.
 
 ## Published results
 
-Two result sets import the same million-row fixture with Scriptella 1.6:
+The latest results come from **one complete v3 GitHub Actions run**, importing
+one million rows with Scriptella 1.6 on Ubuntu 24.04:
 
-These published runs use the previous v2 methodology; the current v3
-specification is described below and in the linked ETL page.
+| Database | Scriptella batch 1000 | JDBC batch 1000 | csvsql chunk 1000 | Scriptella vs csvsql |
+|---|---:|---:|---:|---:|
+| PostgreSQL | 12.358 s | 9.235 s | 400.684 s | 32.4× |
+| MariaDB | 7.404 s | 4.717 s | 389.348 s | 52.6× |
+
+Batched Scriptella took less time than csvsql's documented chunk-1000 import
+path; handwritten JDBC batching was faster than Scriptella. Chunking and JDBC
+batching use different mechanisms. The [full v3 report and evidence](docs/results/2026-10-14-ci-v3/README.md)
+include all eleven cases, dependency metadata and PostgreSQL's separate native
+COPY reference. CI did not measure RAM.
+
+Compare implementations within each CI run, where they share a runner.
+GitHub-hosted hardware and load can vary between executions, even with the same
+runner label. Comparisons across CI runs do not establish performance
+improvements or regressions. Use repeated runs on a controlled machine to
+measure changes over time.
+
+### Historical v2 results
 
 - **[Local development machine](docs/results/2026-10-12-local/README.md):**
-  medians from two complete runs, plus coarse first-run RAM observations.
+  medians from two complete runs, charts and coarse first-run RAM observations.
 - **[GitHub Actions runner](docs/results/2026-10-13-ci/README.md):**
-  one complete run on Ubuntu 24.04, with measurements and dependency metadata.
+  one complete run, charts, measurements and dependency metadata.
 
-| Environment | Database | Scriptella batch 1000 | JDBC batch 1000 | csvsql chunk 1000 | Scriptella vs csvsql |
-|---|---|---:|---:|---:|---:|
-| Local development machine | PostgreSQL | 14.79 s | 13.63 s | 557.95 s | 37.7× |
-| Local development machine | MariaDB | 9.52 s | 6.65 s | 597.05 s | 62.7× |
-| GitHub Actions | PostgreSQL | 6.86 s | 5.85 s | 221.81 s | 32.3× |
-| GitHub Actions | MariaDB | 4.45 s | 3.00 s | 214.92 s | 48.3× |
-
-Batched Scriptella substantially outperformed csvsql's documented chunk-1000
-import path in both environments; handwritten JDBC batching was faster than
-Scriptella. Chunking and JDBC batching use different mechanisms. These are
-exploratory results for the listed workload and environments, not universal
-performance claims. The result sets remain separate and are never pooled.
-
-### Local development machine
-
-![Local PostgreSQL batched CSV import durations](docs/results/2026-10-12-local/postgres.svg)
-
-![Local MariaDB batched CSV import durations](docs/results/2026-10-12-local/mariadb.svg)
-
-Observed first-run MariaDB process memory was about **188 MiB for batched
-Scriptella**, **146 MiB for batched JDBC**, and **895 MiB for csvsql**.
-These are coarse observations, not precise peak-RAM benchmarks.
-
-![Coarse local process-memory observations](docs/results/2026-10-12-local/memory.svg)
-
-### GitHub Actions runner
-
-![CI PostgreSQL batched CSV import durations](docs/results/2026-10-13-ci/postgres.svg)
-
-![CI MariaDB batched CSV import durations](docs/results/2026-10-13-ci/mariadb.svg)
-
-Full reports, individual measurements, environment details and limitations are
-linked above. CI did not measure RAM. The detailed reports also retain unbatched
-cases and PostgreSQL's separate native COPY reference.
+These results retain their original v2 methodology and measurements. Results
+from different benchmark versions and environments are not pooled.
 
 ## Run the comparison
 
@@ -229,10 +215,11 @@ report, and uploads measurements and diagnostics as a downloadable artifact.
 Completed measurements and logs are uploaded even if a later case fails.
 Artifacts are retained for 30 days. The runner needs no project secrets.
 
-CI establishes reproducibility and catches breakage. GitHub-hosted machines vary;
-an environment ID or matching runner label does not prove identical hardware.
-Keep CI numbers separate from named-machine runs and avoid presenting independent
-hosted executions as precise performance comparisons.
+CI establishes reproducibility and catches breakage. Compare implementations
+within each run; GitHub-hosted hardware and load can vary across runs. Matching
+environment IDs or runner labels do not prove identical hardware. Use repeated
+runs on a controlled machine to measure performance changes over time, and keep
+CI results separate from named-machine results.
 
 ## Expected duration and resource use
 
