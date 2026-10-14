@@ -4,9 +4,26 @@ An exploratory experiment comparing CSV imports with Scriptella, handwritten
 JDBC, and csvsql, with PostgreSQL native COPY as a separate reference. The fixed eleven-case comparison runs on
 PostgreSQL and MariaDB, and compatible repeated runs can be aggregated.
 
+**Current benchmark specification: v3.** See the [short Scriptella ETL starter
+and full benchmark configuration](docs/scriptella-etl.md).
+Version 3 simplifies Scriptella's CSV setup by removing benchmark-specific
+custom formatter classes and using the CSV driver's built-in formatters. This
+is a configuration change; it is not a claim of improved performance. The
+official v3 measurements will come from the full CI run.
+
+## Project goal
+
+This project aims to establish a reproducible performance baseline for
+Scriptella and guide its long-term performance improvements. The current CSV
+import comparison is an initial workload, not a comprehensive measure of
+Scriptella's performance.
+
 ## Published results
 
 Two result sets import the same million-row fixture with Scriptella 1.6:
+
+These published runs use the previous v2 methodology; the current v3
+specification is described below and in the linked ETL page.
 
 - **[Local development machine](docs/results/2026-10-12-local/README.md):**
   medians from two complete runs, plus coarse first-run RAM observations.
@@ -82,7 +99,7 @@ are saved under `results/run-<timestamp>-<id>/`:
 - Per-case smoke, warmup, and measured process logs.
 
 On failure, the command exits nonzero and keeps completed valid measurements and
-diagnostics. Future measurements record the stable `benchmark_version=v2`
+diagnostics. Future measurements record the stable `benchmark_version=v3`
 compatibility identifier. Repeated runs of an unchanged benchmark do not require
 Git commits. Increment the version when meaningful implementation or methodology
 changes affect comparability, such as timing boundaries, conversions, transaction
@@ -138,10 +155,14 @@ There are no driver batch option overrides. In the pinned driver sources,
 pgJDBC defaults `reWriteBatchedInserts=false`; MariaDB defaults
 `useBulkStmts=false` and `useBulkStmtsForInserts=true`. Both implementations
 inherit those same settings. JDBC uses Apache Commons CSV 1.14.1,
-independent of Scriptella. Scriptella uses explicit `format.<column>.*` conversion
-rules returning Long, BigDecimal and Timestamp; custom formatters also require
-a `type` property to enable conversion. Both paths preserve integer IDs,
-exact decimal cents, and whole-second timestamps.
+independent of Scriptella. Scriptella uses the CSV driver's built-in number and
+timestamp parsing via `format.<column>.type`; no benchmark-specific formatter
+classes are involved. Both paths preserve integer IDs, exact decimal cents,
+and whole-second timestamps. Scriptella passes parsed `Number` values, while
+the JDBC baseline binds IDs as `long` and amounts as `BigDecimal`; these are
+different Java/JDBC conversion paths. Verification compares stored decimal
+values for representative fractions such as 1.23 and 999.99 in both databases.
+See the [short Scriptella ETL starter and full benchmark configuration](docs/scriptella-etl.md).
 
 Timing includes fresh client process startup through successful
 exit after commit and cleanup, excluding fixture generation, database startup,
@@ -197,8 +218,8 @@ Scriptella releases remain separate; Git revision is traceability only.
 Partial runs contribute only verified cases; comparisons with missing cases are omitted.
 The report records sample counts so incomplete comparisons remain visible.
 
-Version v2 adds csvsql and COPY and changes case order. Existing v1 and legacy
-raw results stay unchanged and cannot be silently pooled with v2.
+Results from different methodologies are not combined.
+
 ## GitHub Actions
 
 Use **Actions → CSV import benchmark → Run workflow**, with the numeric

@@ -27,7 +27,7 @@ import java.util.jar.JarFile;
 /** Environment preparation only. No performance measurements are recorded here. */
 public final class Benchmark {
     // Increment when implementation or methodology changes affect comparability.
-    static final String BENCHMARK_VERSION = "v2";
+    static final String BENCHMARK_VERSION = "v3";
     static final int ROWS = 1_000_000;
     static final LocalDateTime EPOCH = LocalDateTime.of(2020, 1, 1, 0, 0);
     static final DateTimeFormatter CSV_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");

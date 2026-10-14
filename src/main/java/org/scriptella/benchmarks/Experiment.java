@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeSet;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
@@ -158,11 +160,15 @@ final class Experiment {
             if (!Benchmark.scalar(connection, "SELECT COUNT(*) FROM csv_import").equals(Integer.toString(count))) {
                 throw new IllegalStateException(database + ": imported row count mismatch; expected " + count);
             }
-            int[] samples = {1, count / 2, count};
+            var samples = new TreeSet<Integer>(List.of(1, count / 2, count));
+            for (int id : new int[] {123, 999, 12_345, 99_999}) {
+                if (id <= count) samples.add(id);
+            }
+            String sampleIds = samples.stream().map(String::valueOf).collect(Collectors.joining(","));
             Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.ROOT);
             try (var statement = connection.createStatement();
                  var result = statement.executeQuery("SELECT id,name,category,amount,created_at FROM csv_import WHERE id IN ("
-                         + samples[0] + "," + samples[1] + "," + samples[2] + ") ORDER BY id")) {
+                         + sampleIds + ") ORDER BY id")) {
                 for (int id : samples) {
                     if (!result.next() || result.getLong(1) != id || !result.getString(2).equals("row_" + id)
                             || !result.getString(3).equals("category_" + (id % 10))
@@ -188,7 +194,7 @@ final class Experiment {
         values.put("implementation", test.implementation());
         values.put("mode", test.mode());
         values.put("timing_boundary", "fresh_process_start_to_exit");
-        values.put("case_definition", "phase3-v2-fixed-order-warmup20000-csvsql-defaults-chunk1000-copy");
+        values.put("case_definition", "phase3-v3-fixed-order-warmup20000-csvsql-defaults-chunk1000-copy");
         values.put("core_artifact_version", metadata.getProperty("scriptella-core_version"));
         values.put("drivers_artifact_version", metadata.getProperty("scriptella-drivers_version"));
         values.put("postgres_jdbc_version", metadata.getProperty("postgresql_version"));

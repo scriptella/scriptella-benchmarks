@@ -7,9 +7,6 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Timestamp;
-import java.text.FieldPosition;
-import java.text.Format;
-import java.text.ParsePosition;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -108,11 +105,8 @@ public final class Importer {
                     trim=false
                     format.locale=en_US
                     format.id.type=number
-                    format.id.className=org.scriptella.benchmarks.Importer$LongFormat
                     format.amount.type=number
-                    format.amount.className=org.scriptella.benchmarks.Importer$DecimalFormat
                     format.created_at.type=timestamp
-                    format.created_at.className=org.scriptella.benchmarks.Importer$TimestampFormat
                   </connection>
                   <query connection-id="csv">
                     <script connection-id="db">
@@ -137,40 +131,4 @@ public final class Importer {
         return value.replace("&", "&amp;").replace("\"", "&quot;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
-    // Scriptella's built-in number formatter can return floating point values.
-    // These explicit CSV format rules preserve long IDs and exact decimal cents.
-    public abstract static class CellFormat extends Format {
-        @Override
-        public StringBuffer format(Object value, StringBuffer output, FieldPosition position) {
-            return output.append(value);
-        }
-
-        @Override
-        public Object parseObject(String value, ParsePosition position) {
-            try {
-                Object result = convert(value.substring(position.getIndex()));
-                position.setIndex(value.length());
-                return result;
-            } catch (IllegalArgumentException failure) {
-                position.setErrorIndex(position.getIndex());
-                return null;
-            }
-        }
-
-        protected abstract Object convert(String value);
-    }
-
-    public static final class LongFormat extends CellFormat {
-        @Override protected Object convert(String value) { return Long.valueOf(value); }
-    }
-
-    public static final class DecimalFormat extends CellFormat {
-        @Override protected Object convert(String value) { return new BigDecimal(value); }
-    }
-
-    public static final class TimestampFormat extends CellFormat {
-        @Override protected Object convert(String value) {
-            return Timestamp.valueOf(java.time.LocalDateTime.parse(value, Benchmark.CSV_TIME));
-        }
-    }
 }
