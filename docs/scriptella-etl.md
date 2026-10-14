@@ -9,7 +9,7 @@ them into a database table.
 ```xml
 <!DOCTYPE etl SYSTEM "http://scriptella.org/dtd/etl.dtd">
 <etl>
-  <connection id="db" driver="org.postgresql.Driver"
+  <connection id="db" driver="postgresql"
               url="jdbc:postgresql://localhost:5432/example"
               user="example" password="example"/>
 
@@ -45,7 +45,7 @@ database driver and URL, credentials, batch size, and fixture file URL.
 ```xml
 <!DOCTYPE etl SYSTEM "http://scriptella.org/dtd/etl.dtd">
 <etl>
-  <connection id="db" driver="@JDBC_DRIVER@" url="@JDBC_URL@"
+  <connection id="db" driver="@SCRIPTELLA_DRIVER@" url="@JDBC_URL@"
               user="@DB_USER@" password="@DB_PASSWORD@">
     autocommit=false
     statement.batchSize=@BATCH_SIZE@
@@ -70,6 +70,9 @@ database driver and URL, credentials, batch size, and fixture file URL.
 </etl>
 ```
 
+`@SCRIPTELLA_DRIVER@` is `postgresql` or `mariadb`. These built-in Scriptella
+adapters load the corresponding JDBC drivers; the JDBC dependencies are still
+required.
 `@BATCH_SIZE@` is `0` for unbatched imports and `1000` for batched imports.
 `trim=false` overrides the driver's default trimming so it matches the JDBC
 path. `encoding`, separator, quote, headers, and locale are pinned for

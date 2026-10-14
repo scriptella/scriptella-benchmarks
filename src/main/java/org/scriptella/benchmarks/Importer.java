@@ -115,7 +115,7 @@ public final class Importer {
                     </script>
                   </query>
                 </etl>
-                """.formatted(database.equals("postgres") ? "org.postgresql.Driver" : "org.mariadb.jdbc.Driver",
+                """.formatted(database.equals("postgres") ? "postgresql" : "mariadb",
                 xml(url(database)), xml(Benchmark.env("DB_USER")), xml(Benchmark.env("DB_PASSWORD")),
                 batchSize, xml(fixture.toUri().toString()));
         Path config = Files.createTempFile("scriptella-import-", ".etl.xml");
