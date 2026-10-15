@@ -12,6 +12,8 @@ timestamp formatters; see the [ETL specification](../../scriptella-etl.md).
 | PostgreSQL | 12.358 s | 9.235 s | 400.684 s | 32.4× |
 | MariaDB | 7.404 s | 4.717 s | 389.348 s | 52.6× |
 
+![End-to-end import times for one million rows on PostgreSQL and MariaDB, from one v3 CI run. Logarithmic duration scale; lower is faster.](overview.svg)
+
 Scriptella batching provided a 4.62× speedup over its unbatched mode on
 PostgreSQL and a 9.28× speedup on MariaDB. Handwritten JDBC batching was faster than
 Scriptella. csvsql uses its documented chunk-1000 import path; chunking and
@@ -52,4 +54,11 @@ From the repository root:
 ```sh
 docker compose run --build --no-deps --rm \
   -v "$PWD/docs/results/2026-10-14-ci-v3:/results" benchmark aggregate /results
+```
+
+To regenerate the overview chart from the raw measurements, use Python with
+matplotlib installed, from the repository root:
+
+```sh
+python3 tools/plot-overview.py docs/results/2026-10-14-ci-v3
 ```

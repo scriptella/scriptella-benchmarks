@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="720pt" height="396pt" viewBox="0 0 720 396" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 396 
+L 720 396 
+L 720 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 201.6 179.769057 
+L 640.8 179.769057 
+L 640.8 87.12 
+L 201.6 87.12 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <path d="M 201.6 179.769057 
+L 201.6 87.12 
+" clip-path="url(#pe8c738f4a8)" style="fill: none; stroke: #dddddd; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_2"/>
+     <g id="text_1">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle" x="201.6" y="195.366713" transform="rotate(-0 201.6 195.366713)">1 s</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 348 179.769057 
+L 348 87.12 
+" clip-path="url(#pe8c738f4a8)" style="fill: none; stroke: #dddddd; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_4"/>
+     <g id="text_2">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle" x="348" y="195.366713" transform="rotate(-0 348 195.366713)">10 s</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 494.4 179.769057 
+L 494.4 87.12 
+" clip-path="url(#pe8c738f4a8)" style="fill: none; stroke: #dddddd; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_6"/>
+     <g id="text_3">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle" x="494.4" y="195.366713" transform="rotate(-0 494.4 195.366713)">100 s</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_7">
+      <path d="M 640.8 179.769057 
+L 640.8 87.12 
+" clip-path="url(#pe8c738f4a8)" style="fill: none; stroke: #dddddd; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_8"/>
+     <g id="text_4">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle" x="640.8" y="195.366713" transform="rotate(-0 640.8 195.366713)">1,000 s</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_9"/>
+     <g id="text_5">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: end" x="193.6" y="102.500351" transform="rotate(-0 193.6 102.500351)">Scriptella · batch 1000</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_10"/>
+     <g id="text_6">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: end" x="193.6" y="125.662615" transform="rotate(-0 193.6 125.662615)">JDBC · batch 1000</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_11"/>
+     <g id="text_7">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: end" x="193.6" y="148.824879" transform="rotate(-0 193.6 148.824879)">csvsql · chunk 1000</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_12"/>
+     <g id="text_8">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: end" x="193.6" y="171.987143" transform="rotate(-0 193.6 171.987143)">COPY · native reference</text>
+     </g>
+    </g>
+   </g>
+   <g id="PathCollection_1">
+    <defs>
+     <path id="m38ad9d294f" d="M 0 4.330127 
+C 1.148363 4.330127 2.249847 3.873878 3.061862 3.061862 
+C 3.873878 2.249847 4.330127 1.148363 4.330127 0 
+C 4.330127 -1.148363 3.873878 -2.249847 3.061862 -3.061862 
+C 2.249847 -3.873878 1.148363 -4.330127 0 -4.330127 
+C -1.148363 -4.330127 -2.249847 -3.873878 -3.061862 -3.061862 
+C -3.873878 -2.249847 -4.330127 -1.148363 -4.330127 0 
+C -4.330127 1.148363 -3.873878 2.249847 -3.061862 3.061862 
+C -2.249847 3.873878 -1.148363 4.330127 0 4.330127 
+z
+" style="stroke: #197a43"/>
+    </defs>
+    <g clip-path="url(#pe8c738f4a8)">
+     <use xlink:href="#m38ad9d294f" x="361.462131" y="98.701132" style="fill: #197a43; stroke: #197a43"/>
+    </g>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start" x="370.462131" y="101.298788" transform="rotate(-0 370.462131 101.298788)">12.358 s</text>
+   </g>
+   <g id="PathCollection_2">
+    <defs>
+     <path id="m92b3b47987" d="M 0 4.330127 
+C 1.148363 4.330127 2.249847 3.873878 3.061862 3.061862 
+C 3.873878 2.249847 4.330127 1.148363 4.330127 0 
+C 4.330127 -1.148363 3.873878 -2.249847 3.061862 -3.061862 
+C 2.249847 -3.873878 1.148363 -4.330127 0 -4.330127 
+C -1.148363 -4.330127 -2.249847 -3.873878 -3.061862 -3.061862 
+C -3.873878 -2.249847 -4.330127 -1.148363 -4.330127 0 
+C -4.330127 1.148363 -3.873878 2.249847 -3.061862 3.061862 
+C -2.249847 3.873878 -1.148363 4.330127 0 4.330127 
+z
+" style="stroke: #526d82"/>
+    </defs>
+    <g clip-path="url(#pe8c738f4a8)">
+     <use xlink:href="#m92b3b47987" x="342.93663" y="121.863396" style="fill: #526d82; stroke: #526d82"/>
+    </g>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start" x="351.93663" y="124.461052" transform="rotate(-0 351.93663 124.461052)">9.235 s</text>
+   </g>
+   <g id="PathCollection_3">
+    <defs>
+     <path id="m589a752a63" d="M 0 4.330127 
+C 1.148363 4.330127 2.249847 3.873878 3.061862 3.061862 
+C 3.873878 2.249847 4.330127 1.148363 4.330127 0 
+C 4.330127 -1.148363 3.873878 -2.249847 3.061862 -3.061862 
+C 2.249847 -3.873878 1.148363 -4.330127 0 -4.330127 
+C -1.148363 -4.330127 -2.249847 -3.873878 -3.061862 -3.061862 
+C -3.873878 -2.249847 -4.330127 -1.148363 -4.330127 0 
+C -4.330127 1.148363 -3.873878 2.249847 -3.061862 3.061862 
+C -2.249847 3.873878 -1.148363 4.330127 0 4.330127 
+z
+" style="stroke: #94651b"/>
+    </defs>
+    <g clip-path="url(#pe8c738f4a8)">
+     <use xlink:href="#m589a752a63" x="582.650254" y="145.02566" style="fill: #94651b; stroke: #94651b"/>
+    </g>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start" x="591.650254" y="147.623317" transform="rotate(-0 591.650254 147.623317)">400.684 s</text>
+   </g>
+   <g id="PathCollection_4">
+    <defs>
+     <path id="m9f8519f5f2" d="M 0 4.330127 
+C 1.148363 4.330127 2.249847 3.873878 3.061862 3.061862 
+C 3.873878 2.249847 4.330127 1.148363 4.330127 0 
+C 4.330127 -1.148363 3.873878 -2.249847 3.061862 -3.061862 
+C 2.249847 -3.873878 1.148363 -4.330127 0 -4.330127 
+C -1.148363 -4.330127 -2.249847 -3.873878 -3.061862 -3.061862 
+C -3.873878 -2.249847 -4.330127 -1.148363 -4.330127 0 
+C -4.330127 1.148363 -3.873878 2.249847 -3.061862 3.061862 
+C -2.249847 3.873878 -1.148363 4.330127 0 4.330127 
+z
+" style="stroke: #656565"/>
+    </defs>
+    <g clip-path="url(#pe8c738f4a8)">
+     <use xlink:href="#m9f8519f5f2" x="219.693577" y="168.187925" style="fill: #656565; stroke: #656565"/>
+    </g>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start" x="228.693577" y="170.785581" transform="rotate(-0 228.693577 170.785581)">1.329 s</text>
+   </g>
+   <g id="text_13">
+    <text style="font-weight: 700; font-size: 12px; font-family: 'DejaVu Sans'; text-anchor: start" x="201.6" y="77.12" transform="rotate(-0 201.6 77.12)">PostgreSQL</text>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g id="patch_3">
+    <path d="M 201.6 332.64 
+L 640.8 332.64 
+L 640.8 239.990943 
+L 201.6 239.990943 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_3">
+    <g id="xtick_5">
+     <g id="line2d_13">
+      <path d="M 201.6 332.64 
+L 201.6 239.990943 
+" clip-path="url(#pbce9357da6)" style="fill: none; stroke: #dddddd; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_14"/>
+     <g id="text_14">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle" x="201.6" y="348.237656" transform="rotate(-0 201.6 348.237656)">1 s</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_15">
+      <path d="M 348 332.64 
+L 348 239.990943 
+" clip-path="url(#pbce9357da6)" style="fill: none; stroke: #dddddd; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_16"/>
+     <g id="text_15">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle" x="348" y="348.237656" transform="rotate(-0 348 348.237656)">10 s</text>
+     </g>
+    </g>
+    <g id="xtick_7">
+     <g id="line2d_17">
+      <path d="M 494.4 332.64 
+L 494.4 239.990943 
+" clip-path="url(#pbce9357da6)" style="fill: none; stroke: #dddddd; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_18"/>
+     <g id="text_16">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle" x="494.4" y="348.237656" transform="rotate(-0 494.4 348.237656)">100 s</text>
+     </g>
+    </g>
+    <g id="xtick_8">
+     <g id="line2d_19">
+      <path d="M 640.8 332.64 
+L 640.8 239.990943 
+" clip-path="url(#pbce9357da6)" style="fill: none; stroke: #dddddd; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_20"/>
+     <g id="text_17">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: middle" x="640.8" y="348.237656" transform="rotate(-0 640.8 348.237656)">1,000 s</text>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_4">
+    <g id="ytick_5">
+     <g id="line2d_21"/>
+     <g id="text_18">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: end" x="193.6" y="259.231672" transform="rotate(-0 193.6 259.231672)">Scriptella · batch 1000</text>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_22"/>
+     <g id="text_19">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: end" x="193.6" y="290.11469" transform="rotate(-0 193.6 290.11469)">JDBC · batch 1000</text>
+     </g>
+    </g>
+    <g id="ytick_7">
+     <g id="line2d_23"/>
+     <g id="text_20">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: end" x="193.6" y="320.997709" transform="rotate(-0 193.6 320.997709)">csvsql · chunk 1000</text>
+     </g>
+    </g>
+   </g>
+   <g id="PathCollection_5">
+    <g clip-path="url(#pbce9357da6)">
+     <use xlink:href="#m38ad9d294f" x="328.889694" y="255.432453" style="fill: #197a43; stroke: #197a43"/>
+    </g>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start" x="337.889694" y="258.030109" transform="rotate(-0 337.889694 258.030109)">7.404 s</text>
+   </g>
+   <g id="PathCollection_6">
+    <g clip-path="url(#pbce9357da6)">
+     <use xlink:href="#m92b3b47987" x="300.222676" y="286.315472" style="fill: #526d82; stroke: #526d82"/>
+    </g>
+   </g>
+   <g id="text_22">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start" x="309.222676" y="288.913128" transform="rotate(-0 309.222676 288.913128)">4.717 s</text>
+   </g>
+   <g id="PathCollection_7">
+    <g clip-path="url(#pbce9357da6)">
+     <use xlink:href="#m589a752a63" x="580.825434" y="317.198491" style="fill: #94651b; stroke: #94651b"/>
+    </g>
+   </g>
+   <g id="text_23">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start" x="589.825434" y="319.796147" transform="rotate(-0 589.825434 319.796147)">389.348 s</text>
+   </g>
+   <g id="text_24">
+    <text style="font-weight: 700; font-size: 12px; font-family: 'DejaVu Sans'; text-anchor: start" x="201.6" y="229.990943" transform="rotate(-0 201.6 229.990943)">MariaDB</text>
+   </g>
+  </g>
+  <g id="text_25">
+   <text style="font-weight: 700; font-size: 19px; font-family: 'DejaVu Sans'; text-anchor: start" x="28.8" y="26.317031" transform="rotate(-0 28.8 26.317031)">End-to-end CSV import times</text>
+  </g>
+  <g id="text_26">
+   <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #444444" x="28.8" y="49.5" transform="rotate(-0 28.8 49.5)">One million rows · one GitHub Actions run · benchmark v3 · Scriptella 1.6</text>
+  </g>
+  <g id="text_27">
+   <text style="font-size: 10px; font-family: 'DejaVu Sans'; text-anchor: start" x="201.6" y="370.26" transform="rotate(-0 201.6 370.26)">Duration · logarithmic scale · lower is faster</text>
+  </g>
+  <g id="text_28">
+   <text style="font-size: 9px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #444444" x="28.8" y="390.06" transform="rotate(-0 28.8 390.06)">COPY: PostgreSQL only. Chunking and JDBC batching differ. Single observations; see report for methodology.</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pe8c738f4a8">
+   <rect x="201.6" y="87.12" width="439.2" height="92.649057"/>
+  </clipPath>
+  <clipPath id="pbce9357da6">
+   <rect x="201.6" y="239.990943" width="439.2" height="92.649057"/>
+  </clipPath>
+ </defs>
+</svg>
