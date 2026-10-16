@@ -1,6 +1,6 @@
 # Scriptella benchmarks
 
-[Scriptella](https://scriptella.org/) is a Java ETL tool that describes data
+[Scriptella](https://github.com/scriptella/scriptella-etl) is a Java ETL tool that describes data
 flows in XML and SQL. This experiment compares its end-to-end CSV import times
 with handwritten JDBC, csvsql, and PostgreSQL's native COPY.
 
