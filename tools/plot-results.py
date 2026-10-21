@@ -29,7 +29,7 @@ median = {key: statistics.median(values) for key, values in groups.items()}
 plt.rcParams.update({'font.family': 'Arial', 'svg.fonttype': 'none', 'font.size': 11})
 is_ci = metadata['environment_id'].startswith('gha-')
 caption = 'One million rows · one GitHub Actions run' if is_ci and len(run_ids) == 1 else f'One million rows · median of {len(run_ids)} runs'
-footer = ('GitHub Actions · Ubuntu 24.04 x86_64' if is_ci else 'Intel i9-9980HK · Colima x86_64, 4 CPUs / 6 GiB') + ' · Scriptella 1.6 · benchmark v2'
+footer = ('GitHub Actions · Ubuntu 24.04 x86_64' if is_ci else 'Intel i9-9980HK · Colima x86_64, 4 CPUs / 6 GiB') + f" · Scriptella {metadata['scriptella_version']} · benchmark {metadata['benchmark_version']}"
 # Match scriptella.org's light theme and browser-native typography.
 background, ink, muted, border = '#f7f8f7', '#202320', '#4d534e', '#d6dbd7'
 colors = {'scriptella': '#197a43', 'jdbc': '#68786c', 'csvsql': '#8a6118', 'copy': '#aeb7b0'}
@@ -63,14 +63,13 @@ for db, database in [('postgres', 'PostgreSQL 17.11'), ('mariadb', 'MariaDB 11.8
     for y, (implementation, mode, _) in enumerate(selected):
         value = median[(db, implementation, mode)]
         ax.barh(y, value-.1, left=.1, height=.43, color=colors[implementation], zorder=3)
-        ax.text(value*1.12, y, f'{value:.2f} s', va='center', color=ink, weight='bold', fontsize=11)
-    ax.set_xlabel('Duration in seconds · logarithmic axis', color=muted, labelpad=11, fontsize=10)
-    fig.text(.60, .181, 'Lower duration is faster', ha='center', color=muted, fontsize=10, fontstyle='italic')
+        ax.text(value*1.12, y, f'{value:.3f} s', va='center', color=ink, weight='bold', fontsize=11)
+    ax.set_xlabel('Duration in seconds · logarithmic axis · lower is faster', color=muted, labelpad=11, fontsize=10)
     fig.text(.06, .105, footer, color=muted, fontsize=9)
     note = 'COPY is a separate native reference. ' if db == 'postgres' else ''
     fig.text(.06, .062, note+'Exploratory results for this machine and fixture; not universal performance claims.', color=muted, fontsize=9)
     output = root / f'{db}.svg'
-    fig.savefig(output, format='svg', facecolor=background)
+    fig.savefig(output, format='svg', facecolor=background, metadata={'Date': None})
     tree = ET.parse(output); svg = tree.getroot()
     svg.set('role', 'img'); svg.set('aria-labelledby', 'chart-title chart-desc')
     svg.attrib.pop('width', None); svg.attrib.pop('height', None)
@@ -122,7 +121,7 @@ if summary.exists():
     fig.text(.06, .105, footer, color=muted, fontsize=9)
     fig.text(.06, .062, 'One-second Linux process sampling; peaks near exit may be missed. Database and container memory are excluded.', color=muted, fontsize=9)
     output = root / 'memory.svg'
-    fig.savefig(output, format='svg', facecolor=background)
+    fig.savefig(output, format='svg', facecolor=background, metadata={'Date': None})
     tree = ET.parse(output); svg = tree.getroot()
     svg.set('role', 'img'); svg.set('aria-labelledby', 'chart-title chart-desc')
     svg.attrib.pop('width', None); svg.attrib.pop('height', None)

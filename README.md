@@ -29,29 +29,30 @@ The current benchmark definition is **v4**: PostgreSQL explicitly enables
 change follows the [repeated local follow-up](docs/results/2026-10-21-pg-rewrite/README.md).
 The fixture, batch size, transaction boundaries and verification are unchanged.
 MariaDB retains its driver defaults. Scriptella's general adapter default is
-unchanged. A full v4 CI comparison has not yet been recorded here; do not
-combine v4 measurements with v3 or the separate false/true follow-up dataset.
+unchanged. Keep v4 measurements separate from v3 and the false/true follow-up dataset.
 
-## Historical v3 results
+## Current v4 results
 
-The preserved **v3** results come from **one complete GitHub Actions run**,
-importing one million rows with Scriptella 1.6 on Ubuntu 24.04:
+One complete [GitHub Actions run](https://github.com/scriptella/scriptella-benchmarks/actions/runs/39688830534)
+on 2026-10-21 imported one million rows with Scriptella 1.6 on Ubuntu 24.04:
 
 | Database | Scriptella batch 1000 | JDBC batch 1000 | csvsql chunk 1000 | Native COPY reference |
 |---|---:|---:|---:|---:|
-| PostgreSQL | 12.358 s | 9.235 s | 400.684 s | 1.329 s |
-| MariaDB | 7.404 s | 4.717 s | 389.348 s | N/A |
+| PostgreSQL | 7.775 s | 6.320 s | 378.555 s | 1.401 s |
+| MariaDB | 6.694 s | 4.465 s | 370.594 s | N/A |
 
-![End-to-end import times for one million rows on PostgreSQL and MariaDB, from one v3 CI run. Logarithmic duration scale; lower is faster.](docs/results/2026-10-14-ci-v3/overview.svg)
+![End-to-end import times for one million rows on PostgreSQL and MariaDB, from one v4 CI run. Logarithmic duration scale; lower is faster.](docs/results/2026-10-21-ci-v4/overview.svg)
 
 Handwritten JDBC batching was faster than Scriptella; both took less time than
 csvsql's chunk-1000 import path. Native COPY was fastest on PostgreSQL.
 Chunking and JDBC batching use different mechanisms.
 
-The [full v3 report and evidence](docs/results/2026-10-14-ci-v3/README.md)
+The [full v4 report and evidence](docs/results/2026-10-21-ci-v4/README.md)
 include all eleven cases, unbatched results, and dependency metadata.
 Each import passed independent row-count and sample-value verification before
-its timing was recorded. CI did not measure RAM.
+its timing was recorded. These are single observations from one run; CI did
+not measure RAM. Different GitHub-hosted runners do not establish a controlled
+comparison with historical runs.
 
 ## Reproduce
 
@@ -97,7 +98,7 @@ configuration, aggregation, and the complete measurement method.
 These are end-to-end workflow timings, including process startup, CSV parsing,
 type conversion, database writes, and commit. Different parsers, conversion
 paths, and startup work mean they do not isolate Scriptella's abstraction
-overhead. This is a single workload and a single v3 CI run; hardware, caches,
+overhead. This is a single workload; hardware, caches,
 driver defaults, and fixed case order affect results. Compare implementations
 within a run. Use repeated runs on a controlled machine to measure changes
 over time, and keep different benchmark versions and environments separate.
@@ -107,6 +108,8 @@ over time, and keep different benchmark versions and environments separate.
 - [Benchmark guide](docs/benchmark-guide.md): fixture, schema, timing boundaries,
   driver settings, verification, compatibility rules, and operational details.
 - [Scriptella ETL example and full benchmark configuration](docs/scriptella-etl.md).
+- [Historical v3 CI results](docs/results/2026-10-14-ci-v3/README.md):
+  one complete run before PostgreSQL batch rewriting was enabled.
 - [Historical v2 local results](docs/results/2026-10-12-local/README.md):
   two runs, charts, and coarse process-memory observations.
 - [Historical v2 CI results](docs/results/2026-10-13-ci/README.md):

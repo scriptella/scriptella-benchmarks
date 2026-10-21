@@ -1,0 +1,161 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns2="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" viewBox="0 0 878.4 446.4" version="1.1" role="img" aria-labelledby="chart-title chart-desc">
+ <title id="chart-title">PostgreSQL 17.11: CSV import durations, 1 run(s)</title><desc id="chart-desc">Logarithmic duration axis, lower is faster. Scriptella batch 1000 is 48.7 times faster than csvsql chunk 1000. Detailed report includes every individual value and unbatched cases.</desc><metadata>
+  <rdf:RDF>
+   <ns2:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <ns2:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </ns2:Agent>
+    </dc:creator>
+   </ns2:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 446.4  L 878.4 446.4  L 878.4 0  L 0 0  z " style="fill: #f7f8f7" />
+  </g>
+  <g id="patch_2">
+   <path d="M 30.744 374.976  L 847.656 374.976  Q 854.6832 374.976 854.6832 371.4048  L 854.6832 170.5248  Q 854.6832 166.9536 847.656 166.9536  L 30.744 166.9536  Q 23.7168 166.9536 23.7168 170.5248  L 23.7168 371.4048  Q 23.7168 374.976 30.744 374.976  z " style="fill: #ffffff; stroke: #d6dbd7; stroke-linejoin: miter" />
+  </g>
+  <g id="axes_1">
+   <g id="patch_3">
+    <path d="M 263.52 325.872  L 790.56 325.872  L 790.56 191.952  L 263.52 191.952  z " style="fill: #ffffff" />
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <path d="M 263.52 325.872  L 263.52 191.952  " clip-path="url(#pf89e299122)" style="fill: none; stroke: #d6dbd7; stroke-width: 0.8; stroke-linecap: square" />
+     </g>
+     <g id="line2d_2" />
+     <g id="text_1">
+      <text style="font-size: 11px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: middle; fill: #4d534e" x="263.52" y="337.380301" transform="rotate(-0 263.52 337.380301)">0.1 s</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 392.722398 325.872  L 392.722398 191.952  " clip-path="url(#pf89e299122)" style="fill: none; stroke: #d6dbd7; stroke-width: 0.8; stroke-linecap: square" />
+     </g>
+     <g id="line2d_4" />
+     <g id="text_2">
+      <text style="font-size: 11px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: middle; fill: #4d534e" x="392.722398" y="337.380301" transform="rotate(-0 392.722398 337.380301)">1 s</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 521.924797 325.872  L 521.924797 191.952  " clip-path="url(#pf89e299122)" style="fill: none; stroke: #d6dbd7; stroke-width: 0.8; stroke-linecap: square" />
+     </g>
+     <g id="line2d_6" />
+     <g id="text_3">
+      <text style="font-size: 11px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: middle; fill: #4d534e" x="521.924797" y="337.380301" transform="rotate(-0 521.924797 337.380301)">10 s</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_7">
+      <path d="M 651.127195 325.872  L 651.127195 191.952  " clip-path="url(#pf89e299122)" style="fill: none; stroke: #d6dbd7; stroke-width: 0.8; stroke-linecap: square" />
+     </g>
+     <g id="line2d_8" />
+     <g id="text_4">
+      <text style="font-size: 11px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: middle; fill: #4d534e" x="651.127195" y="337.380301" transform="rotate(-0 651.127195 337.380301)">100 s</text>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_9">
+      <path d="M 780.329593 325.872  L 780.329593 191.952  " clip-path="url(#pf89e299122)" style="fill: none; stroke: #d6dbd7; stroke-width: 0.8; stroke-linecap: square" />
+     </g>
+     <g id="line2d_10" />
+     <g id="text_5">
+      <text style="font-size: 11px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: middle; fill: #4d534e" x="780.329593" y="337.380301" transform="rotate(-0 780.329593 337.380301)">1,000 s</text>
+     </g>
+    </g>
+    <g id="text_6">
+     <text style="font-size: 10px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: middle; fill: #4d534e" x="527.04" y="357.975516" transform="rotate(-0 527.04 357.975516)">Duration in seconds · logarithmic axis · lower is faster</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_11" />
+     <g id="text_7">
+      <text style="font-size: 11px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: end; fill: #4d534e" x="248.52" y="215.087579" transform="rotate(-0 248.52 215.087579)">Scriptella · batch 1000</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_12" />
+     <g id="text_8">
+      <text style="font-size: 11px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: end; fill: #4d534e" x="248.52" y="246.973293" transform="rotate(-0 248.52 246.973293)">JDBC · batch 1000</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_13" />
+     <g id="text_9">
+      <text style="font-size: 11px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: end; fill: #4d534e" x="248.52" y="278.859008" transform="rotate(-0 248.52 278.859008)">csvsql · chunk 1000</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_14" />
+     <g id="text_10">
+      <text style="font-size: 11px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: end; fill: #4d534e" x="248.52" y="310.747837" transform="rotate(-0 248.52 310.747837)">COPY · native reference</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_4">
+    <path d="M 263.52 204.228  L 507.799511 204.228  L 507.799511 217.938857  L 263.52 217.938857  z " clip-path="url(#pf89e299122)" style="fill: #197a43" />
+   </g>
+   <g id="text_11">
+    <text style="font-weight: 700; font-size: 11px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: start; fill: #202320" x="514.158598" y="213.930108" transform="rotate(-0 514.158598 213.930108)">7.775 s</text>
+   </g>
+   <g id="patch_5">
+    <path d="M 263.52 236.113714  L 496.180081 236.113714  L 496.180081 249.824571  L 263.52 249.824571  z " clip-path="url(#pf89e299122)" style="fill: #68786c" />
+   </g>
+   <g id="text_12">
+    <text style="font-weight: 700; font-size: 11px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: start; fill: #202320" x="502.539168" y="245.815823" transform="rotate(-0 502.539168 245.815823)">6.320 s</text>
+   </g>
+   <g id="patch_6">
+    <path d="M 263.52 267.999429  L 725.822861 267.999429  L 725.822861 281.710286  L 263.52 281.710286  z " clip-path="url(#pf89e299122)" style="fill: #8a6118" />
+   </g>
+   <g id="text_13">
+    <text style="font-weight: 700; font-size: 11px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: start; fill: #202320" x="732.181948" y="277.701537" transform="rotate(-0 732.181948 277.701537)">378.555 s</text>
+   </g>
+   <g id="patch_7">
+    <path d="M 263.52 299.885143  L 411.658815 299.885143  L 411.658815 313.596  L 263.52 313.596  z " clip-path="url(#pf89e299122)" style="fill: #aeb7b0" />
+   </g>
+   <g id="text_14">
+    <text style="font-weight: 700; font-size: 11px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: start; fill: #202320" x="418.017902" y="309.587251" transform="rotate(-0 418.017902 309.587251)">1.401 s</text>
+   </g>
+  </g>
+  <g id="text_15">
+   <text style="font-weight: 700; font-size: 13px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: start; fill: #4d534e" x="52.704" y="31.248" transform="rotate(-0 52.704 31.248)">Scriptella CSV import benchmark</text>
+  </g>
+  <g id="text_16">
+   <text style="font-weight: 700; font-size: 25px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: start; fill: #202320" x="52.704" y="64.728" transform="rotate(-0 52.704 64.728)">Batched CSV imports. PostgreSQL 17.11.</text>
+  </g>
+  <g id="text_17">
+   <text style="font-size: 12px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: start; fill: #4d534e" x="52.704" y="88.8336" transform="rotate(-0 52.704 88.8336)">One million rows · one GitHub Actions run</text>
+  </g>
+  <g id="text_18">
+   <text style="font-weight: 700; font-size: 31px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: start; fill: #197a43" x="52.704" y="133.92" transform="rotate(-0 52.704 133.92)">48.7×</text>
+  </g>
+  <g id="text_19">
+   <text style="font-size: 12px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: start; fill: #202320" x="180.072" y="124.992" transform="rotate(-0 180.072 124.992)">Scriptella batch 1000 vs csvsql chunk 1000</text>
+  </g>
+  <g id="text_20">
+   <text style="font-size: 10px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: start; fill: #4d534e" x="180.072" y="141.5088" transform="rotate(-0 180.072 141.5088)">Duration ratio; chunking mechanisms differ.</text>
+  </g>
+  <g id="text_21">
+   <text style="font-size: 9px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: start; fill: #4d534e" x="52.704" y="399.528" transform="rotate(-0 52.704 399.528)">GitHub Actions · Ubuntu 24.04 x86_64 · Scriptella 1.6 · benchmark v4</text>
+  </g>
+  <g id="text_22">
+   <text style="font-size: 9px; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; text-anchor: start; fill: #4d534e" x="52.704" y="418.7232" transform="rotate(-0 52.704 418.7232)">COPY is a separate native reference. Exploratory results for this machine and fixture; not universal performance claims.</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pf89e299122">
+   <rect x="263.52" y="191.952" width="527.04" height="133.92" />
+  </clipPath>
+ </defs>
+</svg>

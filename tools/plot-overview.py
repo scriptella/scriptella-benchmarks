@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render an overview from a complete published run or the rewrite follow-up (requires matplotlib).
 
-Usage: python3 tools/plot-overview.py docs/results/2026-10-14-ci-v3
+Usage: python3 tools/plot-overview.py docs/results/2026-10-21-ci-v4
 """
 import csv
 import sys
@@ -126,5 +126,27 @@ for ax, db, title in zip(axes, ['postgres', 'mariadb'], ['PostgreSQL', 'MariaDB'
 fig.text(.28, .065, 'Duration · logarithmic scale · lower is faster', fontsize=10)
 fig.text(.04, .015, 'COPY: PostgreSQL only. Chunking and JDBC batching differ.'
          ' Single observations; see report for methodology.', fontsize=9, color='#444444')
-fig.savefig(root / 'overview.svg', metadata={'Date': None})
+output = root / 'overview.svg'
+fig.savefig(output, metadata={'Date': None})
+fig.savefig(root / 'overview-preview.png', dpi=180)
 plt.close(fig)
+ET.register_namespace('', 'http://www.w3.org/2000/svg')
+ns = '{http://www.w3.org/2000/svg}'
+tree = ET.parse(output)
+svg = tree.getroot()
+svg.set('role', 'img')
+svg.set('aria-labelledby', 'chart-title chart-desc')
+title = ET.Element(ns + 'title', {'id': 'chart-title'})
+title.text = f"End-to-end CSV import times — benchmark {meta['benchmark_version']}"
+desc = ET.Element(ns + 'desc', {'id': 'chart-desc'})
+desc.text = 'One million rows, one GitHub Actions run. '
+for db, label in [('postgres', 'PostgreSQL'), ('mariadb', 'MariaDB')]:
+    selected = cases if db == 'postgres' else cases[:3]
+    desc.text += label + ': ' + ', '.join(
+        f'{name} {values[db, impl, mode]:.3f} seconds'
+        for impl, mode, name in selected) + '. '
+desc.text += 'Logarithmic duration scale; lower is faster. Chunking and JDBC batching differ.'
+svg.insert(0, desc)
+svg.insert(0, title)
+tree.write(output, encoding='utf-8', xml_declaration=True)
+print(output)
