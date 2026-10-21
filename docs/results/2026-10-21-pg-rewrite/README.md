@@ -68,6 +68,12 @@ remain separate and are not used to calculate these comparisons.
 
 ## Results
 
+![Median import times with PostgreSQL rewriting off and on, alongside unchanged MariaDB controls.](rewrite-comparison.svg)
+
+Regenerate this chart from the recorded CSV with
+`python3 tools/plot-overview.py docs/results/2026-10-21-pg-rewrite`
+(requires matplotlib). The PNG preview is generated locally and Git-ignored.
+
 All 18 measured imports and all smoke/warmup imports passed verification.
 The table lists seconds; lower is faster. Medians are calculated independently
 for each configuration, from three repetitions.
