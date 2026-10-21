@@ -1,10 +1,18 @@
 # Benchmark guide
 
-This guide documents benchmark v3: its workload, measurement method, run
+This guide documents benchmark v4: its workload, measurement method, run
 metadata, and reporting rules. For the overview and current results, see the
 [root README](../README.md). Run all commands below from the repository root.
 
-Version 3 simplifies Scriptella's CSV setup by removing benchmark-specific
+Version 4 enables pgJDBC `reWriteBatchedInserts=true` equally for Scriptella
+and handwritten JDBC, following the separately reported
+[false/true follow-up](results/2026-10-21-pg-rewrite/README.md). Version 3 used
+the PostgreSQL driver default, false. Historical results remain unchanged and
+must not be pooled with v4. Standard preparation requires
+`POSTGRES_REWRITE_BATCHED_INSERTS=true`. Both implementations pass it as a
+connection property; the Scriptella ETL places it next to `statement.batchSize`. No Scriptella adapter default is changed.
+
+Version 3 simplified Scriptella's CSV setup by removing benchmark-specific
 custom formatter classes and using the CSV driver's built-in formatters. This
 is a configuration change; it is not a claim of improved performance.
 
@@ -65,7 +73,7 @@ diagnostics.
 
 ### Benchmark versioning and compatibility
 
-New measurements record the stable `benchmark_version=v3`
+New measurements record the stable `benchmark_version=v4`
 compatibility identifier. Repeated runs of an unchanged benchmark do not require
 Git commits. Increment the version when meaningful implementation or methodology
 changes affect comparability, such as timing boundaries, conversions, transaction
@@ -86,6 +94,7 @@ The Compose configuration accepts these environment variables:
 | Variable | Default | Purpose |
 |---|---|---|
 | `SCRIPTELLA_VERSION` | `1.6` | Maven-published release included in the image. |
+| `POSTGRES_REWRITE_BATCHED_INSERTS` | `true` | Shared PostgreSQL connection property; false/true in the follow-up. |
 | `BENCHMARK_COMMAND` | `run` | Select `run`, `smoke`, or `prepare`. |
 | `ENVIRONMENT_ID` | `local-unspecified` | Identify the measurement environment. |
 | `ENVIRONMENT_DESCRIPTION` | `Unspecified local Docker environment` | Describe hardware and runtime allocation. |
@@ -118,8 +127,8 @@ There are no nulls, transformations, indexes, or primary keys.
 
 The table uses BIGINT, VARCHAR(32), VARCHAR(16), DECIMAL(12,2), and PostgreSQL
 TIMESTAMP WITHOUT TIME ZONE or MariaDB DATETIME. All columns are NOT NULL;
-MariaDB uses InnoDB. Durability settings and JDBC batch options retain normal
-defaults. Preparation records server versions and selected durability settings.
+MariaDB uses InnoDB. Durability settings retain normal defaults. PostgreSQL explicitly enables
+batch insert rewriting; MariaDB batch options retain driver defaults. Preparation records server versions and selected durability settings.
 
 ## Measurement method
 
@@ -127,11 +136,13 @@ Every run first smoke-checks all eleven cases. For each database, the fixed
 order is Scriptella unbatched, Scriptella batch 1000, JDBC unbatched, JDBC batch
 1000, then csvsql chunk 1000, then PostgreSQL native COPY reference on PostgreSQL
 only; PostgreSQL runs before MariaDB. Each case uses one transaction and one
-commit per import, the same JDBC URL/driver defaults, and a pre-created table.
-There are no driver batch option overrides. In the pinned driver sources,
-pgJDBC defaults `reWriteBatchedInserts=false`; MariaDB defaults
-`useBulkStmts=false` and `useBulkStmtsForInserts=true`. Both implementations
-inherit those same settings. JDBC uses Apache Commons CSV 1.14.1,
+commit per import, the same JDBC settings within each database, and a pre-created table.
+PostgreSQL explicitly enables `reWriteBatchedInserts=true` for both Java paths.
+This overrides pgJDBC's default of false; unbatched INSERTs do not use batch
+rewriting. COPY remains the native path. csvsql uses its existing psycopg2 path
+and is unaffected by the JDBC option. MariaDB defaults
+`useBulkStmts=false` and `useBulkStmtsForInserts=true`. Both Java implementations
+use the same settings for their database. JDBC uses Apache Commons CSV 1.14.1,
 independent of Scriptella. Scriptella uses the CSV driver's built-in number and
 timestamp parsing via `format.<column>.type`; no benchmark-specific formatter
 classes are involved. Both paths preserve integer IDs, exact decimal cents,
@@ -230,3 +241,14 @@ Machine, Docker environment, runtime and database versions, caches, fixed case
 order, and startup overhead affect results. Repeated compatible runs help
 interpret a result; they do not make it universal. csvsql chunking differs from
 JDBC batching. PostgreSQL COPY is a native reference, not a portable competitor.
+
+## Future local follow-ups
+
+For focused local experiments, use PostgreSQL and MariaDB with Scriptella and
+handwritten JDBC. Do not rerun csvsql locally unless a relevant change or a
+specific csvsql question warrants it. Keep the full comparison, including
+csvsql, in CI. Cite CI measurements as separately labeled context; do not pool
+them with local measurements or calculate cross-environment speedups.
+The default eleven-case runner remains available for full CI comparisons;
+the PostgreSQL rewrite follow-up uses `compose.pg-rewrite.yaml` to run only
+the six relevant batch configurations.

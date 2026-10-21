@@ -22,9 +22,19 @@ and guide future improvements, starting with a simple CSV import workload.
 These are specific workflows and settings, not a ranking of CSV loaders.
 No transformations or MariaDB native loader are tested.
 
-## Results
+## Benchmark v4
 
-The current **v3** results come from **one complete GitHub Actions run**,
+The current benchmark definition is **v4**: PostgreSQL explicitly enables
+`reWriteBatchedInserts=true` for both Scriptella and handwritten JDBC. This
+change follows the [repeated local follow-up](docs/results/2026-10-21-pg-rewrite/README.md).
+The fixture, batch size, transaction boundaries and verification are unchanged.
+MariaDB retains its driver defaults. Scriptella's general adapter default is
+unchanged. A full v4 CI comparison has not yet been recorded here; do not
+combine v4 measurements with v3 or the separate false/true follow-up dataset.
+
+## Historical v3 results
+
+The preserved **v3** results come from **one complete GitHub Actions run**,
 importing one million rows with Scriptella 1.6 on Ubuntu 24.04:
 
 | Database | Scriptella batch 1000 | JDBC batch 1000 | csvsql chunk 1000 | Native COPY reference |
@@ -103,3 +113,11 @@ over time, and keep different benchmark versions and environments separate.
   one complete run with measurements and dependency metadata.
 - [Importing a million CSV rows: Scriptella, JDBC, csvsql, and PostgreSQL COPY](https://pvrlabs.xyz/articles/importing-a-million-csv-rows.html):
   the PVR Labs article walking through the historical v2 results.
+
+## PostgreSQL batch rewrite follow-up
+
+A separate [three-round follow-up](docs/results/2026-10-21-pg-rewrite/README.md)
+compares pgJDBC `reWriteBatchedInserts=false` and `true` at batch size 1000,
+using Scriptella 1.6 and handwritten JDBC, with current MariaDB controls.
+It retains the v3 fixture, transactions and verification. These measurements
+use a separate compatibility identifier and do not replace the v3 results.

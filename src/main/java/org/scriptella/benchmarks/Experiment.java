@@ -194,7 +194,7 @@ final class Experiment {
         values.put("implementation", test.implementation());
         values.put("mode", test.mode());
         values.put("timing_boundary", "fresh_process_start_to_exit");
-        values.put("case_definition", "phase3-v3-fixed-order-warmup20000-csvsql-defaults-chunk1000-copy");
+        values.put("case_definition", "phase3-v4-pg-rewrite-true-fixed-order-warmup20000-csvsql-defaults-chunk1000-copy");
         values.put("core_artifact_version", metadata.getProperty("scriptella-core_version"));
         values.put("drivers_artifact_version", metadata.getProperty("scriptella-drivers_version"));
         values.put("postgres_jdbc_version", metadata.getProperty("postgresql_version"));

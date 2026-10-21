@@ -44,6 +44,7 @@ services:
       ENVIRONMENT_ID: ${ENVIRONMENT_ID:-local-unspecified}
       ENVIRONMENT_DESCRIPTION: ${ENVIRONMENT_DESCRIPTION:-Unspecified local Docker environment}
       POSTGRES_URL: jdbc:postgresql://postgres:5432/benchmark
+      POSTGRES_REWRITE_BATCHED_INSERTS: 'true'
       MARIADB_URL: jdbc:mariadb://mariadb:3306/benchmark
       DB_USER: benchmark
       DB_PASSWORD: benchmark

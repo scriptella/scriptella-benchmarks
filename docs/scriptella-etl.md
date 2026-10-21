@@ -1,4 +1,4 @@
-# Scriptella ETL specification — benchmark v3
+# Scriptella ETL specification — benchmark v4
 
 The benchmark uses explicit settings for repeatability. Start with this shorter
 ETL to see the basic flow: read CSV rows, parse the typed columns, and insert
@@ -38,9 +38,10 @@ locale, so this example pins `en_US` for decimal-point numbers.
 
 ## Reproducible benchmark ETL
 
-The v3 benchmark makes relevant values explicit. `Importer` generates this ETL
+The v4 benchmark makes relevant values explicit. `Importer` generates this ETL
 document for each Scriptella run. The placeholders are filled with the selected
-database driver and URL, credentials, batch size, and fixture file URL.
+database driver and URL, credentials, batch size, PostgreSQL rewrite property,
+and fixture file URL. The rewrite property is omitted for MariaDB.
 
 ```xml
 <!DOCTYPE etl SYSTEM "http://scriptella.org/dtd/etl.dtd">
@@ -49,6 +50,7 @@ database driver and URL, credentials, batch size, and fixture file URL.
               user="@DB_USER@" password="@DB_PASSWORD@">
     autocommit=false
     statement.batchSize=@BATCH_SIZE@
+    @POSTGRES_REWRITE_PROPERTY@
   </connection>
   <connection id="csv" driver="csv" url="@FIXTURE_FILE_URL@">
     encoding=UTF-8
@@ -91,3 +93,19 @@ stored decimal for representative fractional inputs, including 1.23 and
 The ETL document is assembled and parsed inside the timed Scriptella process.
 See [`Importer.java`](../src/main/java/org/scriptella/benchmarks/Importer.java)
 for the exact runtime substitutions and invocation.
+
+In v4, PostgreSQL sets the property directly next to batching:
+
+```xml
+<connection id="db" driver="postgresql"
+            url="jdbc:postgresql://localhost:5432/example"
+            user="example" password="example">
+  autocommit=false
+  statement.batchSize=1000
+  reWriteBatchedInserts=true
+</connection>
+```
+
+Scriptella forwards connection properties to JDBC. Handwritten JDBC sets the
+same property through `java.util.Properties`. Both use the shared
+`POSTGRES_REWRITE_BATCHED_INSERTS` setting. MariaDB retains its defaults.

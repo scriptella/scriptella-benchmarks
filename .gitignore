@@ -4,3 +4,8 @@
 /.agent-logs/
 
 /docs/results/**/*-preview.png
+
+# Local Python bytecode and macOS metadata
+__pycache__/
+*.py[cod]
+.DS_Store

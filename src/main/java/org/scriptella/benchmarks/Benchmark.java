@@ -27,7 +27,7 @@ import java.util.jar.JarFile;
 /** Environment preparation only. No performance measurements are recorded here. */
 public final class Benchmark {
     // Increment when implementation or methodology changes affect comparability.
-    static final String BENCHMARK_VERSION = "v3";
+    static final String BENCHMARK_VERSION = "v4";
     static final int ROWS = 1_000_000;
     static final LocalDateTime EPOCH = LocalDateTime.of(2020, 1, 1, 0, 0);
     static final DateTimeFormatter CSV_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -74,7 +74,10 @@ public final class Benchmark {
         metadata.setProperty("scriptella_version", env("SCRIPTELLA_VERSION"));
         metadata.setProperty("postgres_image", "postgres:17.11-alpine3.24");
         metadata.setProperty("mariadb_image", "mariadb:11.8.8");
-        metadata.setProperty("jdbc_batch_options", "driver defaults; no URL batch overrides");
+        metadata.setProperty("jdbc_batch_options", "PostgreSQL reWriteBatchedInserts=true; MariaDB driver defaults");
+        if (!phase.equals("pg-rewrite-followup")) {
+            requirePostgresRewrite(env("POSTGRES_URL"), env("POSTGRES_REWRITE_BATCHED_INSERTS"));
+        }
         try {
             inspectArtifact(metadata, "scriptella-core", env("SCRIPTELLA_VERSION"));
             inspectArtifact(metadata, "scriptella-drivers", env("SCRIPTELLA_VERSION"));
@@ -110,6 +113,13 @@ public final class Benchmark {
             metadata.setProperty("failure", failure.toString());
             storeMetadata(output, metadata);
             throw failure;
+        }
+    }
+
+    static void requirePostgresRewrite(String url, String rewrite) {
+        Importer.postgresProperties(url, rewrite);
+        if (!rewrite.equals("true")) {
+            throw new IllegalArgumentException("Benchmark v4 requires POSTGRES_REWRITE_BATCHED_INSERTS=true");
         }
     }
 

@@ -9,6 +9,7 @@ import java.sql.DriverManager;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.TimeZone;
 import org.apache.commons.csv.CSVFormat;
 import scriptella.execution.EtlExecutor;
@@ -39,9 +40,25 @@ public final class Importer {
     }
 
     static Connection connect(String database) throws Exception {
-        // Compose sets both server/session defaults to UTC; measured clients use
-        // the same unmodified URLs and the same UTC JVM timezone.
-        return DriverManager.getConnection(url(database), Benchmark.env("DB_USER"), Benchmark.env("DB_PASSWORD"));
+        Properties properties = database.equals("postgres")
+                ? postgresProperties(url(database), Benchmark.env("POSTGRES_REWRITE_BATCHED_INSERTS"))
+                : new Properties();
+        properties.setProperty("user", Benchmark.env("DB_USER"));
+        properties.setProperty("password", Benchmark.env("DB_PASSWORD"));
+        return DriverManager.getConnection(url(database), properties);
+    }
+
+    static Properties postgresProperties(String url, String rewrite) {
+        Properties urlProperties = org.postgresql.Driver.parseURL(url, new Properties());
+        if (urlProperties == null || urlProperties.containsKey("reWriteBatchedInserts")) {
+            throw new IllegalArgumentException("Use a plain PostgreSQL URL; set POSTGRES_REWRITE_BATCHED_INSERTS separately");
+        }
+        if (!rewrite.equals("true") && !rewrite.equals("false")) {
+            throw new IllegalArgumentException("POSTGRES_REWRITE_BATCHED_INSERTS must be true or false");
+        }
+        Properties properties = new Properties();
+        properties.setProperty("reWriteBatchedInserts", rewrite);
+        return properties;
     }
 
     private static void copy(String database, Path fixture) throws Exception {
@@ -89,13 +106,17 @@ public final class Importer {
     }
 
     private static void scriptella(String database, int batchSize, Path fixture) throws Exception {
-        // Driver URL/settings are the same as JDBC; server/session and JVM defaults are UTC.
+        String rewriteProperty = database.equals("postgres")
+                ? "reWriteBatchedInserts=" + postgresProperties(url(database),
+                        Benchmark.env("POSTGRES_REWRITE_BATCHED_INSERTS")).getProperty("reWriteBatchedInserts")
+                : "";
         String xml = """
                 <!DOCTYPE etl SYSTEM "http://scriptella.org/dtd/etl.dtd">
                 <etl>
                   <connection id="db" driver="%s" url="%s" user="%s" password="%s">
                     autocommit=false
                     statement.batchSize=%d
+                    %s
                   </connection>
                   <connection id="csv" driver="csv" url="%s">
                     encoding=UTF-8
@@ -117,7 +138,7 @@ public final class Importer {
                 </etl>
                 """.formatted(database.equals("postgres") ? "postgresql" : "mariadb",
                 xml(url(database)), xml(Benchmark.env("DB_USER")), xml(Benchmark.env("DB_PASSWORD")),
-                batchSize, xml(fixture.toUri().toString()));
+                batchSize, rewriteProperty, xml(fixture.toUri().toString()));
         Path config = Files.createTempFile("scriptella-import-", ".etl.xml");
         try {
             Files.writeString(config, xml, StandardCharsets.UTF_8);

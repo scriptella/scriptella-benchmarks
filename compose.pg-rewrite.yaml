@@ -1,0 +1,5 @@
+# Separate follow-up: retains explicit false/true controls independently of v4.
+services:
+  benchmark:
+    entrypoint: [java, '-Duser.timezone=UTC', '-cp', '/app/target/classes:/app/target/dependency/*', org.scriptella.benchmarks.RewriteFollowup]
+    command: []

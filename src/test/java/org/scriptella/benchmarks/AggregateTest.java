@@ -50,6 +50,12 @@ class AggregateTest {
         assertThrows(IllegalArgumentException.class, () -> Aggregate.run(directory));
         assertFalse(Files.exists(directory.resolve("report.md")));
     }
+    @Test void differentBenchmarkVersionsCannotBePooled() throws Exception {
+        sample("v3-run", "1.6", 1000, Map.of("benchmark_version", "v3"));
+        sample("v4-run", "1.6", 1000, Map.of("benchmark_version", "v4"));
+        assertThrows(IllegalArgumentException.class, () -> Aggregate.run(directory));
+        assertFalse(Files.exists(directory.resolve("report.md")));
+    }
     @Test void legacyVersionFails() throws Exception {
         sample("a", "1.6", 1000, Map.of("benchmark_version", ""));
         assertThrows(IllegalArgumentException.class, () -> Aggregate.run(directory));
