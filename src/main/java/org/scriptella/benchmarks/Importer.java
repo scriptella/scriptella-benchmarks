@@ -20,19 +20,100 @@ public final class Importer {
 
     public static void main(String[] args) throws Exception {
         if (args.length != 4) {
-            throw new IllegalArgumentException("Usage: <postgres|mariadb> <scriptella|jdbc> <0|1000> <fixture>");
+            throw new IllegalArgumentException("Usage: <postgres|mariadb> <scriptella|jdbc|copy|load_data> <1000|0-native> <fixture>");
         }
         String database = args[0];
         int batchSize = Integer.parseInt(args[2]);
-        if ((!database.equals("postgres") && !database.equals("mariadb")) || (batchSize != 0 && batchSize != 1000)) {
-            throw new IllegalArgumentException("Unsupported database or batch size");
-        }
+        validateCase(database, args[1], batchSize);
         switch (args[1]) {
             case "scriptella" -> scriptella(database, batchSize, Path.of(args[3]));
             case "copy" -> copy(database, Path.of(args[3]));
+            case "load_data" -> loadData(Path.of(args[3]));
             case "jdbc" -> jdbc(database, batchSize, Path.of(args[3]));
             default -> throw new IllegalArgumentException("Unsupported implementation: " + args[1]);
         }
+    }
+
+    static void validateCase(String database, String implementation, int batchSize) {
+        boolean valid = switch (implementation) {
+            case "scriptella", "jdbc" -> (database.equals("postgres") || database.equals("mariadb")) && batchSize == 1000;
+            case "copy" -> database.equals("postgres") && batchSize == 0;
+            case "load_data" -> database.equals("mariadb") && batchSize == 0;
+            default -> false;
+        };
+        if (!valid) throw new IllegalArgumentException("Unsupported database, implementation or batch size");
+    }
+
+    // SQL literals use actual LF and double quote characters; escaping is disabled
+    // because the deterministic CSV contains no backslash escapes.
+    static final String LOAD_DATA_SQL = """
+            LOAD DATA LOCAL INFILE 'benchmark-stream.csv' INTO TABLE csv_import
+            CHARACTER SET utf8mb4
+            FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"' ESCAPED BY ''
+            LINES TERMINATED BY '\n'
+            IGNORE 1 LINES
+            (id,name,category,amount,created_at)
+            """;
+
+    private static Connection loadConnection() throws Exception {
+        Properties properties = new Properties();
+        properties.setProperty("user", Benchmark.env("DB_USER"));
+        properties.setProperty("password", Benchmark.env("DB_PASSWORD"));
+        properties.setProperty("allowLocalInfile", "true");
+        Connection connection = DriverManager.getConnection(url("mariadb"), properties);
+        try (var statement = connection.createStatement()) {
+            statement.execute("SET time_zone = '+00:00'");
+        }
+        connection.setAutoCommit(false);
+        return connection;
+    }
+
+    static void executeLoadData(Connection connection, Path fixture) throws Exception {
+        try (var input = Files.newInputStream(fixture);
+             var statement = connection.createStatement()) {
+            statement.unwrap(org.mariadb.jdbc.Statement.class).setLocalInfileInputStream(input);
+            statement.executeUpdate(LOAD_DATA_SQL);
+            if (statement.getWarnings() != null) {
+                throw new IllegalStateException("LOAD DATA warning: " + statement.getWarnings());
+            }
+        }
+    }
+
+    private static void loadData(Path fixture) throws Exception {
+        try (var connection = loadConnection()) {
+            try {
+                executeLoadData(connection, fixture);
+                connection.commit();
+            } catch (Exception failure) {
+                connection.rollback();
+                throw failure;
+            }
+        }
+    }
+
+    static void verifyLoadDataTransaction(Path fixture, int rows) throws Exception {
+        try (var connection = loadConnection()) {
+            try {
+                executeLoadData(connection, fixture);
+                if (!Benchmark.scalar(connection, "SELECT @@in_transaction").equals("1")
+                        || !Benchmark.scalar(connection, "SELECT COUNT(*) FROM csv_import").equals(Integer.toString(rows))) {
+                    throw new IllegalStateException("LOAD DATA did not remain in the expected transaction");
+                }
+                try (var observer = connect("mariadb")) {
+                    if (!Benchmark.scalar(observer, "SELECT COUNT(*) FROM csv_import").equals("0")) {
+                        throw new IllegalStateException("LOAD DATA rows visible before commit");
+                    }
+                }
+            } finally {
+                connection.rollback();
+            }
+        }
+        try (var observer = connect("mariadb")) {
+            if (!Benchmark.scalar(observer, "SELECT COUNT(*) FROM csv_import").equals("0")) {
+                throw new IllegalStateException("LOAD DATA rollback did not empty table");
+            }
+        }
+        System.out.println("LOAD DATA transaction probe passed: uncommitted rows invisible; rollback empty");
     }
 
     static String url(String database) {
@@ -87,15 +168,11 @@ public final class Importer {
                 insert.setString(3, row.get("category"));
                 insert.setBigDecimal(4, new BigDecimal(row.get("amount")));
                 insert.setTimestamp(5, Timestamp.valueOf(java.time.LocalDateTime.parse(row.get("created_at"), Benchmark.CSV_TIME)), utc);
-                if (batchSize == 0) {
-                    insert.executeUpdate();
-                } else {
-                    insert.addBatch();
-                    if (++pending == batchSize) {
-                        insert.executeBatch();
-                        insert.clearBatch();
-                        pending = 0;
-                    }
+                insert.addBatch();
+                if (++pending == batchSize) {
+                    insert.executeBatch();
+                    insert.clearBatch();
+                    pending = 0;
                 }
             }
             if (pending > 0) {

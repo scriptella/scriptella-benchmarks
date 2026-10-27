@@ -56,6 +56,94 @@ class AggregateTest {
         assertThrows(IllegalArgumentException.class, () -> Aggregate.run(directory));
         assertFalse(Files.exists(directory.resolve("report.md")));
     }
+    @Test void v5PandasRatiosAndDependencyCompatibility() throws Exception {
+        Map<String, String> v5 = Map.of("benchmark_version", "v5", "pandas_version", "2.3.3", "numpy_version", "2.3.4");
+        sample("a", "1.6", 1000, v5);
+        var pandas = new HashMap<>(v5);
+        pandas.put("implementation", "pandas");
+        pandas.put("mode", "chunk_1000");
+        sample("b", "1.6", 1800, pandas);
+        Aggregate.run(directory);
+        String report = Files.readString(directory.resolve("report.md"));
+        assertTrue(report.contains("Pandas + SQLAlchemy chunk_1000"));
+        assertTrue(report.contains("vs pandas (batch_1000): 1.800×"));
+        assertFalse(report.contains("vs csvsql"));
+        pandas.put("numpy_version", "other");
+        sample("c", "1.6", 1800, pandas);
+        assertThrows(IllegalArgumentException.class, () -> Aggregate.run(directory));
+    }
+
+    @Test void v4AndV5CannotBePooled() throws Exception {
+        sample("a", "1.6", 1000, Map.of("benchmark_version", "v4"));
+        sample("b", "1.6", 1000, Map.of("benchmark_version", "v5", "pandas_version", "2.3.3", "numpy_version", "2.3.4"));
+        assertThrows(IllegalArgumentException.class, () -> Aggregate.run(directory));
+    }
+
+    @Test void differentCaseSelectionsCannotBePooled() throws Exception {
+        sample("a", "1.6", 1000, Map.of("case_definition", "default-seven"));
+        sample("b", "1.6", 1000, Map.of("case_definition", "opt-in-eleven"));
+        assertThrows(IllegalArgumentException.class, () -> Aggregate.run(directory));
+    }
+
+    private Map<String, String> finalMetadata() {
+        var values = new HashMap<String, String>();
+        values.put("benchmark_version", "v5");
+        values.put("pandas_version", "2.3.3");
+        values.put("numpy_version", "2.3.4");
+        values.put("case_definition", Experiment.CASE_DEFINITION);
+        Experiment.LOAD_METADATA.forEach(k -> values.put(k, "same"));
+        return values;
+    }
+
+    @Test void finalEightReportsNativeLoadAndRejectsChangedSettings() throws Exception {
+        var values = finalMetadata();
+        values.put("database", "mariadb");
+        sample("a", "1.6", 1000, values);
+        values.put("implementation", "load_data");
+        values.put("mode", "native_reference");
+        sample("b", "1.6", 250, values);
+        Aggregate.run(directory);
+        String report = Files.readString(directory.resolve("report.md"));
+        assertTrue(report.contains("MariaDB native LOAD DATA LOCAL INFILE reference"));
+        assertTrue(report.contains("LOAD DATA vs Scriptella 1.6 (batch_1000): 4.000×"));
+        assertTrue(report.contains("| Database | Scriptella | JDBC | Pandas | Native load |"));
+        values.put("mariadb_local_infile", "0");
+        sample("c", "1.6", 250, values);
+        assertThrows(IllegalArgumentException.class, () -> Aggregate.run(directory));
+    }
+
+    @Test void reportEscapesControlsWithoutChangingRawMetadata() throws Exception {
+        var values = finalMetadata();
+        String sql = "LOAD DATA LOCAL INFILE 'fixture.csv'\nLINES TERMINATED BY '\n'";
+        values.put("mariadb_load_sql", sql);
+        values.put("environment_description", "line1\r\nline2\ttab|literal\\n");
+        sample("a", "1.6", 1000, values);
+        Path raw = directory.resolve("a/measurements.csv");
+        byte[] original = Files.readAllBytes(raw);
+        Aggregate.run(directory);
+        String report = Files.readString(directory.resolve("report.md"));
+        assertTrue(report.contains("LINES TERMINATED BY '\\n'"));
+        assertTrue(report.contains("line1\\r\\nline2\\ttab\\|literal\\\\n"));
+        assertFalse(report.contains("LINES TERMINATED BY ' '"));
+        assertArrayEquals(original, Files.readAllBytes(raw));
+        try (var reader = Files.newBufferedReader(raw);
+             var csv = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).get().parse(reader)) {
+            assertEquals(sql, csv.iterator().next().get("mariadb_load_sql"));
+        }
+    }
+
+    @Test void finalEightCannotPoolEarlierV5AndRejectsUnbatched() throws Exception {
+        sample("a", "1.6", 1000, finalMetadata());
+        var earlier = finalMetadata();
+        earlier.put("case_definition", "v5-earlier-seven");
+        sample("b", "1.6", 1000, earlier);
+        assertThrows(IllegalArgumentException.class, () -> Aggregate.run(directory));
+        earlier.put("case_definition", Experiment.CASE_DEFINITION);
+        earlier.put("mode", "unbatched");
+        sample("b", "1.6", 1000, earlier);
+        assertThrows(IllegalArgumentException.class, () -> Aggregate.run(directory));
+    }
+
     @Test void legacyVersionFails() throws Exception {
         sample("a", "1.6", 1000, Map.of("benchmark_version", ""));
         assertThrows(IllegalArgumentException.class, () -> Aggregate.run(directory));

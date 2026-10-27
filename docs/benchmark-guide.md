@@ -1,14 +1,16 @@
 # Benchmark guide
 
-This guide documents benchmark v4: its workload, measurement method, run
+This guide documents benchmark v5: its workload, measurement method, run
 metadata, and reporting rules. For the overview and current results, see the
 [root README](../README.md). Run all commands below from the repository root.
+
+Version 5 replaces csvsql with Pandas; v4 evidence remains historical.
 
 Version 4 enables pgJDBC `reWriteBatchedInserts=true` equally for Scriptella
 and handwritten JDBC, following the separately reported
 [false/true follow-up](results/2026-10-21-pg-rewrite/README.md). Version 3 used
 the PostgreSQL driver default, false. Historical results remain unchanged and
-must not be pooled with v4. Standard preparation requires
+must not be pooled with v4 or v5. Standard preparation requires
 `POSTGRES_REWRITE_BATCHED_INSERTS=true`. Both implementations pass it as a
 connection property; the Scriptella ETL places it next to `statement.batchSize`. No Scriptella adapter default is changed.
 
@@ -26,12 +28,12 @@ cd scriptella-benchmarks
 ```
 
 The host needs a Docker-compatible runtime and Docker Compose. The image owns
-Java 17, Maven, Python/csvkit, the selected Maven-published Scriptella release,
+Java 17, Maven, Python/Pandas, the selected Maven-published Scriptella release,
 and JDBC dependencies. It does not use a Scriptella source checkout or distribution ZIP.
 
 ### Quick correctness check
 
-Start with a smoke run, which validates all eleven imports using 2,001-row
+Start with a smoke run, which validates all eight imports using 2,001-row
 prefixes, including a final partial batch. It records no benchmark timings.
 The first invocation also downloads the images and builds the benchmark image.
 
@@ -60,7 +62,7 @@ generates one deterministic million-row CSV, verifies the requested Scriptella
 artifact versions and their SHA-256 checksums, and prepares each database. It
 inserts and verifies the first, middle, and last fixture values using typed
 JDBC bindings, then truncates the table and verifies it is empty. Preparation
-is followed by the eleven-case comparison described under Measurement method. Results and diagnostics
+is followed by the eight-case comparison described under Measurement method. Results and diagnostics
 are saved under `results/run-<timestamp>-<id>/`:
 
 - `measurements.csv`: only successfully imported and independently verified cases.
@@ -73,7 +75,7 @@ diagnostics.
 
 ### Benchmark versioning and compatibility
 
-New measurements record the stable `benchmark_version=v4`
+New measurements record the stable `benchmark_version=v5`
 compatibility identifier. Repeated runs of an unchanged benchmark do not require
 Git commits. Increment the version when meaningful implementation or methodology
 changes affect comparability, such as timing boundaries, conversions, transaction
@@ -132,14 +134,12 @@ batch insert rewriting; MariaDB batch options retain driver defaults. Preparatio
 
 ## Measurement method
 
-Every run first smoke-checks all eleven cases. For each database, the fixed
-order is Scriptella unbatched, Scriptella batch 1000, JDBC unbatched, JDBC batch
-1000, then csvsql chunk 1000, then PostgreSQL native COPY reference on PostgreSQL
-only; PostgreSQL runs before MariaDB. Each case uses one transaction and one
+Every run first smoke-checks every selected case. For each database, the fixed
+order is Scriptella batch 1000, JDBC batch 1000, Pandas + SQLAlchemy chunk 1000,
+then the native reference (PostgreSQL COPY or MariaDB LOAD DATA LOCAL INFILE); PostgreSQL runs before MariaDB. Each case uses one transaction and one
 commit per import, the same JDBC settings within each database, and a pre-created table.
 PostgreSQL explicitly enables `reWriteBatchedInserts=true` for both Java paths.
-This overrides pgJDBC's default of false; unbatched INSERTs do not use batch
-rewriting. COPY remains the native path. csvsql uses its existing psycopg2 path
+This overrides pgJDBC's default of false. COPY remains the PostgreSQL native path. Pandas uses its psycopg2 path
 and is unaffected by the JDBC option. MariaDB defaults
 `useBulkStmts=false` and `useBulkStmtsForInserts=true`. Both Java implementations
 use the same settings for their database. JDBC uses Apache Commons CSV 1.14.1,
@@ -163,19 +163,82 @@ After each import exits, a separate connection checks row count and first,
 middle, and last IDs, strings, decimals and timestamps. The runner then writes
 duration and throughput and resets the table. Console ratios use current-run
 durations: Scriptella vs JDBC is `JDBC / Scriptella` for each matching mode;
-batching speedup is `unbatched / batch-1000` for each implementation;
-Scriptella vs csvsql is `csvsql / Scriptella` for each Scriptella mode;
-COPY vs Scriptella is `Scriptella / COPY`. Above 1
+Scriptella vs Pandas is `Pandas / Scriptella` for each Scriptella mode;
+Native loader vs Scriptella is `Scriptella / native loader`. Above 1
 means the first named implementation or batched mode is faster.
 
-csvsql 2.2.0 uses the [documented direct-import workflow](https://csvkit.readthedocs.io/en/2.2.0/scripts/csvsql.html):
-`csvsql --db <SQLAlchemy URL> --tables csv_import --no-create --insert --chunk-size 1000 <fixture>`.
-Type inference, dialect sniffing, SQLAlchemy and DBAPI settings use normal defaults.
-Chunk 1000 aligns row grouping with JDBC batching; it is not an optimal-size claim.
-The image pins SQLAlchemy 2.0.46, psycopg2-binary 2.9.11 and PyMySQL 1.1.2.
-Python package versions and invocation are recorded in run metadata. Python/csvkit
-startup is included in csvsql timing. COPY streams the same CSV through pgJDBC,
-with explicit columns and CSV/header/UTF-8 settings, in one transaction.
+Pandas reads the CSV with explicit int64 IDs and string columns in 10,000-row
+chunks. Amount strings become Python `Decimal` objects without a floating-point
+intermediate. Timestamp strings use an explicit whole-second format. Each chunk
+calls `DataFrame.to_sql()` with `if_exists="append"`, `index=False`,
+`chunksize=1000`, explicit SQLAlchemy types and the default insertion method.
+One `engine.begin()` connection covers every chunk and commits once, then the
+engine is disposed before exit. Both database sessions explicitly use UTC.
+There is no `method="multi"`, COPY, or custom bulk path in the Pandas contender.
+
+Exact invocation: `python /app/src/main/python/pandas_import.py <SQLAlchemy URL> <fixture>`.
+URLs use `postgresql+psycopg2` or `mysql+pymysql`. The image pins Pandas 2.3.3,
+NumPy 2.3.4, SQLAlchemy 2.0.46, psycopg2-binary 2.9.11 and PyMySQL 1.1.2;
+all Python dependencies are pinned in `requirements.txt`. Resolved versions and
+invocation are recorded in preparation metadata. Python startup is timed.
+COPY streams the same CSV through pgJDBC in one transaction and remains a
+native bulk-loading reference.
+
+The final runner has exactly eight cases for both `run` and `smoke`. Earlier
+seven-case, eleven-case and focused v5 experiments remain historical and cannot
+be pooled with the final case definition. Unbatched implementations are retired;
+`run-all`, `smoke-all` and the completed `spike` selection are removed. Reproduce
+retired workflows from their recorded source revision, not this runner.
+
+## MariaDB native LOAD DATA
+
+`LOAD DATA LOCAL INFILE` sends the existing fixture from the benchmark client to
+the server, avoiding a file copy or shared mount into the database container.
+Connector/J 3.5.7 supplies a bound `InputStream`; the SQL filename is a protocol
+placeholder. This uses the existing Java dependency, not a new native client.
+The exact statement is recorded as `mariadb_load_sql` in every final measurement:
+
+```sql
+LOAD DATA LOCAL INFILE 'benchmark-stream.csv' INTO TABLE csv_import
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"' ESCAPED BY ''
+LINES TERMINATED BY '\n'
+IGNORE 1 LINES
+(id,name,category,amount,created_at)
+```
+
+The Java SQL literal contains an actual LF delimiter. The fixture is UTF-8,
+LF-terminated CSV with one header. Explicit columns preserve the common schema;
+server conversion loads BIGINT, exact DECIMAL(12,2) and whole-second DATETIME
+values. CSV backslash escaping is disabled; this is the documented deterministic
+fixture format, not a general CSV compatibility claim. The loader session uses
+`time_zone='+00:00'`, `autocommit=false`, one load statement and one explicit
+commit. It closes the stream, statement and connection before successful exit.
+Fresh JVM startup, client file streaming, server parsing/loading, commit and
+cleanup are timed, just as process startup through exit is timed for other cases.
+
+Compose explicitly enables server `local_infile=1`. Only the native load
+connection sets `allowLocalInfile=true`; the other contender configurations are
+unchanged. Metadata records both settings, SQL, session SQL mode, binlog state,
+binlog format, sync_binlog, server/driver versions and existing durability flags.
+The target remains InnoDB, with `innodb_flush_log_at_trx_commit` unchanged from
+its normal default (1 in the measured environment); durability is not weakened
+for native loading. The untimed smoke preparation requires the load to remain
+in a transaction, its rows to be invisible on a separate connection before
+commit, and rollback to leave the table empty. The real smoke and measured
+imports commit, exit, and pass independent count/value verification.
+
+Native bulk loading is not semantically identical to batched INSERTs: parsing
+and type conversion happen in the server, and MariaDB documents that LOCAL
+relaxes strict modes such as `STRICT_TRANS_TABLES`. The implementation treats
+any load warning as failure and rolls back rather than silently accepting
+coercion. The transaction probe establishes behavior for the pinned InnoDB
+workload; it does not establish identical error, trigger, replication or locking
+behavior for all loaders/storage engines. No general claim about implicit
+commits is inferred from other server versions or engines.
+
+Primary references: [MariaDB LOAD DATA syntax and LOCAL behavior](https://mariadb.com/docs/server/reference/sql-statements/data-manipulation/inserting-loading-data/load-data-into-tables-or-index/load-data-infile),
+[Connector/J client streaming](https://mariadb.com/docs/connectors/mariadb-connector-j/about-mariadb-connector-j).
 
 ## Aggregate compatible runs
 
@@ -208,11 +271,19 @@ The report records sample counts so incomplete comparisons remain visible.
 
 Results from different methodologies are not combined.
 
+The optional `tools/plot-results.py` tool validates the same version-specific
+compatibility fields before importing matplotlib, computing medians or writing
+charts. It additionally requires complete runs of one Scriptella release. Its
+field-list parity with the Java aggregator and its Python regression tests run
+under `mvn-lite test`. Run the plot-input tests alone without plotting packages
+using `python3 -m unittest discover -s tools -p test_plot_data.py`.
+
+
 ## GitHub Actions
 
 Use **Actions → CSV import benchmark → Run workflow**, with the numeric
 Maven-published `scriptella_version` input (default `1.6`). The manual workflow
-runs the same full Compose experiment on `ubuntu-24.04`, generates a single-run
+runs the same eight-case Compose experiment on `ubuntu-24.04`, generates a single-run
 report, and uploads measurements and diagnostics as a downloadable artifact.
 Completed measurements and logs are uploaded even if a later case fails.
 Artifacts are retained for 30 days. The runner needs no project secrets.
@@ -225,30 +296,19 @@ CI results separate from named-machine results.
 
 ## Expected duration and resource use
 
-The published million-row local runs took about 33–35 minutes each. Runtime varies
-by machine and Docker allocation; csvsql spent about 9–10 minutes per database in
-these runs. Its normal type-inference path loads an in-memory table before
-inserting, so a quiet console can mean parsing rather than a stalled import.
-The runner prints each stage and retains subprocess logs. It has no progress
-percentage. Preparation and smoke-only runs offer a short correctness check.
+Historical v2 local runs took about 33–35 minutes each; v5 runtime depends on
+the environment. The runner prints stages and retains child logs. The benchmark
+does not routinely profile RAM. Pandas holds one 10,000-row input frame plus
+conversion and insertion buffers; this bounds input chunk size, not measured
+peak process memory.
 
-The experiment does not routinely profile RAM. Published memory observations are
-coarse process resident-memory diagnostics from part of the first local run,
-with their collection method and limits documented alongside the results.
+Machine, caches, fixed case order and fresh process startup affect results.
+Compare current implementations within runs; repeated compatible measurements
+help interpretation but do not establish universal performance.
 
-This is a directional engineering experiment, not an industry-grade benchmark.
-Machine, Docker environment, runtime and database versions, caches, fixed case
-order, and startup overhead affect results. Repeated compatible runs help
-interpret a result; they do not make it universal. csvsql chunking differs from
-JDBC batching. PostgreSQL COPY is a native reference, not a portable competitor.
+## Contender lifecycle
 
-## Future local follow-ups
-
-For focused local experiments, use PostgreSQL and MariaDB with Scriptella and
-handwritten JDBC. Do not rerun csvsql locally unless a relevant change or a
-specific csvsql question warrants it. Keep the full comparison, including
-csvsql, in CI. Cite CI measurements as separately labeled context; do not pool
-them with local measurements or calculate cross-environment speedups.
-The default eleven-case runner remains available for full CI comparisons;
-the PostgreSQL rewrite follow-up uses `compose.pg-rewrite.yaml` to run only
-the six relevant batch configurations.
+The [documentation registry](contenders.md) records active, candidate and
+eliminated contenders. csvsql is eliminated from all normal v5 smoke, local and
+CI runs. Its pinned v4 implementation and historical evidence remain available
+from the recorded Git revision. There is no runtime lifecycle framework.

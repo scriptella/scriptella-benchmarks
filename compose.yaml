@@ -16,7 +16,7 @@ services:
       retries: 60
   mariadb:
     image: mariadb:11.8.8
-    command: ['--default-time-zone=+00:00']
+    command: ['--default-time-zone=+00:00', '--local-infile=1']
     environment:
       MARIADB_DATABASE: benchmark
       MARIADB_USER: benchmark

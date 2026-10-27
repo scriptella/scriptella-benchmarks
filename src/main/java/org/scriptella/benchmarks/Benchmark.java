@@ -27,7 +27,7 @@ import java.util.jar.JarFile;
 /** Environment preparation only. No performance measurements are recorded here. */
 public final class Benchmark {
     // Increment when implementation or methodology changes affect comparability.
-    static final String BENCHMARK_VERSION = "v4";
+    static final String BENCHMARK_VERSION = "v5";
     static final int ROWS = 1_000_000;
     static final LocalDateTime EPOCH = LocalDateTime.of(2020, 1, 1, 0, 0);
     static final DateTimeFormatter CSV_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -85,12 +85,12 @@ public final class Benchmark {
             inspectArtifact(metadata, "mariadb-java-client", "3.5.7");
             inspectArtifact(metadata, "commons-csv", "1.14.1");
             Process versions = new ProcessBuilder("python", "-c",
-                    "from importlib.metadata import version; import platform; print('python_version='+platform.python_version()); print('agate_version='+version('agate')); print('agate_sql_version='+version('agate-sql')); print('csvkit_version='+version('csvkit')); print('sqlalchemy_version='+version('SQLAlchemy')); print('postgres_dbapi_driver=psycopg2'); print('postgres_dbapi_driver_version='+version('psycopg2-binary')); print('mariadb_dbapi_driver=PyMySQL'); print('mariadb_dbapi_driver_version='+version('PyMySQL'))")
+                    "from importlib.metadata import version; import platform; print('python_version='+platform.python_version()); print('pandas_version='+version('pandas')); print('numpy_version='+version('numpy')); print('sqlalchemy_version='+version('SQLAlchemy')); print('postgres_dbapi_driver=psycopg2'); print('postgres_dbapi_driver_version='+version('psycopg2-binary')); print('mariadb_dbapi_driver=PyMySQL'); print('mariadb_dbapi_driver_version='+version('PyMySQL'))")
                     .redirectError(ProcessBuilder.Redirect.INHERIT).start();
             metadata.load(versions.getInputStream());
             if (versions.waitFor() != 0) throw new IllegalStateException("Python dependency inspection failed");
-            metadata.setProperty("csvsql_invocation", "csvsql --db <SQLAlchemy URL> --tables csv_import --no-create --insert --chunk-size 1000 <fixture>; inference and driver defaults");
-            metadata.setProperty("csvsql_documentation", "https://csvkit.readthedocs.io/en/2.2.0/scripts/csvsql.html");
+            metadata.setProperty("pandas_invocation", "python /app/src/main/python/pandas_import.py <SQLAlchemy URL> <fixture>");
+            metadata.setProperty("pandas_settings", "read_csv chunksize=10000; to_sql chunksize=1000 method=None; explicit Decimal and datetime; engine.begin single transaction");
             storeMetadata(output, metadata);
             Path fixture = Path.of("/work/fixture.csv");
             Files.createDirectories(fixture.getParent());
@@ -119,7 +119,7 @@ public final class Benchmark {
     static void requirePostgresRewrite(String url, String rewrite) {
         Importer.postgresProperties(url, rewrite);
         if (!rewrite.equals("true")) {
-            throw new IllegalArgumentException("Benchmark v4 requires POSTGRES_REWRITE_BATCHED_INSERTS=true");
+            throw new IllegalArgumentException("Benchmark v5 requires POSTGRES_REWRITE_BATCHED_INSERTS=true");
         }
     }
 
@@ -199,6 +199,11 @@ public final class Benchmark {
                     metadata.setProperty("postgres_synchronous_commit", scalar(connection, "SHOW synchronous_commit"));
                     metadata.setProperty("postgres_fsync", scalar(connection, "SHOW fsync"));
                 } else {
+                    for (String setting : java.util.List.of("local_infile", "sql_mode", "log_bin", "binlog_format", "sync_binlog")) {
+                        metadata.setProperty("mariadb_" + setting, scalar(connection, "SELECT @@" + setting));
+                    }
+                    metadata.setProperty("mariadb_load_client_settings", "MariaDB Connector/J 3.5.7; allowLocalInfile=true; bound InputStream; autocommit=false; time_zone=+00:00; warnings fatal");
+                    metadata.setProperty("mariadb_load_sql", Importer.LOAD_DATA_SQL);
                     metadata.setProperty("mariadb_timezone", scalar(connection, "SELECT @@session.time_zone"));
                     metadata.setProperty("mariadb_innodb_flush_log_at_trx_commit",
                             scalar(connection, "SELECT @@innodb_flush_log_at_trx_commit"));

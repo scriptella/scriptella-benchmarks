@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render an overview from a complete published run or the rewrite follow-up (requires matplotlib).
+"""Render compatible complete runs or the rewrite follow-up (requires matplotlib).
 
 Usage: python3 tools/plot-overview.py docs/results/2026-10-21-ci-v4
 """
@@ -15,12 +15,14 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FixedLocator, FixedFormatter
 
 root = Path(sys.argv[1])
-sources = list(root.glob('*/measurements.csv'))
-if len(sources) != 1:
-    raise ValueError('Overview requires one complete published run')
+sources = sorted(root.glob('*/measurements.csv'))
+if not sources:
+    raise ValueError('Overview requires measurements.csv inputs')
 with sources[0].open() as stream:
     rows = list(csv.DictReader(stream))
 if rows and 'rewrite' in rows[0]:
+    if len(sources) != 1:
+        raise ValueError('Rewrite overview requires one follow-up dataset')
     groups = {}
     for row in rows:
         if row['verified'] != 'true' or row['rows'] != '1000000' or row['batch_size'] != '1000':
@@ -85,50 +87,69 @@ if rows and 'rewrite' in rows[0]:
     print(output)
     sys.exit(0)
 
-if len(rows) != 11 or len({row['run_id'] for row in rows}) != 1:
-    raise ValueError('Expected eleven cases from one run')
-values = {(r['database'], r['implementation'], r['mode']):
-          float(r['duration_ms']) / 1000 for r in rows}
-meta = rows[0]
+# Use the same compatibility validator as the per-database comparison charts.
+from plot_data import load_measurements
+import math
+
+groups, run_ids, meta = load_measurements(root)
+values = {key: statistics.median(samples) for key, samples in groups.items()}
+python_impl = 'pandas' if meta['benchmark_version'] == 'v5' else 'csvsql'
+python_label = 'Pandas + SQLAlchemy' if python_impl == 'pandas' else 'csvsql'
 cases = [('scriptella', 'batch_1000', 'Scriptella · batch 1000'),
          ('jdbc', 'batch_1000', 'JDBC · batch 1000'),
-         ('csvsql', 'chunk_1000', 'csvsql · chunk 1000'),
-         ('copy', 'native_reference', 'COPY · native reference')]
-colors = ['#197a43', '#526d82', '#94651b', '#656565']
-plt.rcParams.update({'font.family': 'DejaVu Sans', 'font.size': 10,
-                     'svg.fonttype': 'none'})
-fig, axes = plt.subplots(2, 1, figsize=(10, 5.5))
-fig.subplots_adjust(left=.28, right=.89, top=.78, bottom=.16, hspace=.65)
-fig.suptitle('End-to-end CSV import times', x=.04, y=.97,
-             ha='left', fontsize=19, weight='bold')
-fig.text(.04, .875,
-         f"One million rows · one GitHub Actions run · benchmark {meta['benchmark_version']}"
-         f" · Scriptella {meta['scriptella_version']}", color='#444444', fontsize=10)
+         (python_impl, 'chunk_1000', python_label + ' · write 1000')]
+colors = ['#197a43', '#526d82', '#94651b', '#747c76']
+is_v5 = meta['benchmark_version'] == 'v5'
+is_ci = meta['environment_id'].startswith('gha-')
+run_label = 'CI' if is_ci else 'local'
+sample_label = f'Median of {len(run_ids)} {run_label} runs' if len(run_ids) > 1 else f'One {run_label} run'
+plt.rcParams.update({'font.family': 'DejaVu Sans', 'font.size': 11, 'svg.fonttype': 'none'})
+fig, axes = plt.subplots(2, 1, figsize=(11.2, 6.8), sharex=True)
+fig.subplots_adjust(left=.36, right=.94, top=.77, bottom=.18, hspace=.57)
+fig.suptitle('End-to-end CSV import times', x=.035, y=.97,
+             ha='left', fontsize=21, weight='bold', color='#202320')
+fig.text(.035, .895, f"One million rows · {sample_label.lower()} · benchmark {meta['benchmark_version']}"
+         f" · Scriptella {meta['scriptella_version']}", fontsize=11, color='#444444')
+fig.text(.035, .847, 'Bars show median durations; dots show individual runs.', fontsize=10, color='#444444')
+maximum = max(max(samples) for samples in groups.values())
 for ax, db, title in zip(axes, ['postgres', 'mariadb'], ['PostgreSQL', 'MariaDB']):
-    selected = cases if db == 'postgres' else cases[:3]
-    ax.set_title(title, loc='left', weight='bold', pad=10)
-    ax.set_xscale('log')
-    ax.set_xlim(1, 1000)
+    selected = list(cases)
+    if db == 'postgres':
+        selected.append(('copy', 'native_reference', 'COPY · native reference'))
+    elif (db, 'load_data', 'native_reference') in values:
+        selected.append(('load_data', 'native_reference', 'LOAD DATA LOCAL · native reference'))
+    ax.set_title(title, loc='left', weight='bold', pad=11, color='#202320')
+    if is_v5:
+        ax.set_xlim(0, math.ceil(maximum * 1.22 / 5) * 5)
+    else:
+        ax.set_xscale('log')
+        ax.set_xlim(.1, 1200)
+        ax.xaxis.set_major_locator(FixedLocator([.1, 1, 10, 100, 1000]))
+        ax.xaxis.set_major_formatter(FixedFormatter(['0.1', '1', '10', '100', '1,000']))
+        ax.minorticks_off()
     ax.set_ylim(len(selected)-.5, -.5)
-    ax.xaxis.set_major_locator(FixedLocator([1, 10, 100, 1000]))
-    ax.xaxis.set_major_formatter(FixedFormatter(['1 s', '10 s', '100 s', '1,000 s']))
-    ax.minorticks_off()
-    ax.grid(axis='x', color='#dddddd', linewidth=.8)
-    ax.set_yticks(range(len(selected)), [c[2] for c in selected])
-    ax.tick_params(axis='both', length=0, pad=8)
+    ax.grid(axis='x', color='#dce1dd', linewidth=.8, zorder=0)
+    ax.set_yticks(range(len(selected)), [case[2] for case in selected])
+    ax.tick_params(axis='both', length=0, pad=10, colors='#444444')
     for spine in ax.spines.values():
         spine.set_visible(False)
     for y, (impl, mode, _) in enumerate(selected):
-        value = values[(db, impl, mode)]
-        ax.scatter(value, y, s=75, color=colors[y], zorder=3)
-        ax.annotate(f'{value:.3f} s', (value, y), xytext=(9, 0),
-                    textcoords='offset points', va='center', fontsize=10)
-fig.text(.28, .065, 'Duration · logarithmic scale · lower is faster', fontsize=10)
-fig.text(.04, .015, 'COPY: PostgreSQL only. Chunking and JDBC batching differ.'
-         ' Single observations; see report for methodology.', fontsize=9, color='#444444')
+        key = db, impl, mode
+        value = values[key]
+        left = 0 if is_v5 else .1
+        ax.barh(y, value-left, left=left, height=.53, color=colors[y], zorder=2)
+        ax.scatter(groups[key], [y] * len(groups[key]), s=22, facecolors='white',
+                   edgecolors='#364039', linewidths=.9, zorder=3)
+        end = max(groups[key]) + maximum * .024 if is_v5 else max(groups[key]) * 1.16
+        ax.text(end, y, f'{value:.3f} s', va='center', fontsize=10, weight='bold', color='#202320')
+axes[-1].set_xlabel('Duration in seconds · lower is faster' + ('' if is_v5 else ' · logarithmic scale'),
+                    labelpad=12, color='#444444')
+fig.text(.035, .06, f"Environment: {meta['environment_id']} · fresh process start through exit", fontsize=9, color='#444444')
+fig.text(.035, .025, 'COPY and LOAD DATA LOCAL are native references with different parsing/error semantics.',
+         fontsize=9, color='#444444')
 output = root / 'overview.svg'
 fig.savefig(output, metadata={'Date': None})
-fig.savefig(root / 'overview-preview.png', dpi=180)
+fig.savefig(root / 'overview-preview.png', dpi=160)
 plt.close(fig)
 ET.register_namespace('', 'http://www.w3.org/2000/svg')
 ns = '{http://www.w3.org/2000/svg}'
@@ -139,13 +160,17 @@ svg.set('aria-labelledby', 'chart-title chart-desc')
 title = ET.Element(ns + 'title', {'id': 'chart-title'})
 title.text = f"End-to-end CSV import times — benchmark {meta['benchmark_version']}"
 desc = ET.Element(ns + 'desc', {'id': 'chart-desc'})
-desc.text = 'One million rows, one GitHub Actions run. '
+desc.text = f"One million rows; {sample_label.lower()}; Scriptella {meta['scriptella_version']}. "
 for db, label in [('postgres', 'PostgreSQL'), ('mariadb', 'MariaDB')]:
-    selected = cases if db == 'postgres' else cases[:3]
-    desc.text += label + ': ' + ', '.join(
-        f'{name} {values[db, impl, mode]:.3f} seconds'
-        for impl, mode, name in selected) + '. '
-desc.text += 'Logarithmic duration scale; lower is faster. Chunking and JDBC batching differ.'
+    selected = list(cases)
+    if db == 'postgres':
+        selected.append(('copy', 'native_reference', 'COPY native reference'))
+    elif (db, 'load_data', 'native_reference') in values:
+        selected.append(('load_data', 'native_reference', 'LOAD DATA LOCAL native reference'))
+    desc.text += label + ': ' + ', '.join(f'{name} {values[db, impl, mode]:.3f} seconds'
+                                         for impl, mode, name in selected) + '. '
+desc.text += ('Linear axis starts at zero. ' if is_v5 else 'Logarithmic duration scale. ')
+desc.text += 'Lower is faster; bars are medians, dots are individual measurements. Native loaders are separate references.'
 svg.insert(0, desc)
 svg.insert(0, title)
 tree.write(output, encoding='utf-8', xml_declaration=True)

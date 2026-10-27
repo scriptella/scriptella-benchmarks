@@ -33,7 +33,7 @@ jobs:
             echo 'Use a numeric Maven-published release, for example 1.6.' >&2
             exit 1
           }
-      - name: Run full comparison
+      - name: Run default eight-case comparison
         shell: bash
         run: |
           mkdir -p results

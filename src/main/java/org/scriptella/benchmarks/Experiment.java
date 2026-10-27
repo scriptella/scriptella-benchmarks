@@ -21,19 +21,32 @@ import org.apache.commons.csv.CSVPrinter;
 
 /** Fixed public comparison. Preparation and verification stay outside timing. */
 final class Experiment {
+    static final String CASE_DEFINITION = "v5-final-eight-pg-rewrite-true-warmup20000-pandas-read10000-write1000-local-infile-v1";
+    static final List<String> LOAD_METADATA = List.of("mariadb_local_infile", "mariadb_sql_mode",
+            "mariadb_log_bin", "mariadb_binlog_format", "mariadb_sync_binlog", "mariadb_load_client_settings",
+            "mariadb_load_sql", "mariadb_load_transaction_probe");
     private static final int SMOKE_ROWS = 2001; // exercises a final partial batch
     private static final int WARMUP_ROWS = 20_000;
     private static final String[] COLUMNS = {
         "run_id", "timestamp_utc", "environment_id", "environment_description", "architecture", "benchmark_version", "benchmark_revision", "database", "implementation", "mode",
         "timing_boundary", "case_definition", "scriptella_version", "core_artifact_version", "drivers_artifact_version",
         "rows", "duration_ms", "rows_per_second", "fixture_sha256", "java_version", "postgres_image", "mariadb_image",
-        "postgres_jdbc_version", "mariadb_jdbc_version", "commons_csv_version", "python_version", "agate_version", "agate_sql_version", "csvkit_version", "sqlalchemy_version",
+        "postgres_jdbc_version", "mariadb_jdbc_version", "commons_csv_version", "python_version", "pandas_version", "numpy_version", "sqlalchemy_version",
         "postgres_dbapi_driver", "postgres_dbapi_driver_version", "mariadb_dbapi_driver", "mariadb_dbapi_driver_version",
-        "postgres_synchronous_commit", "postgres_fsync", "mariadb_innodb_flush_log_at_trx_commit"
+        "postgres_synchronous_commit", "postgres_fsync", "mariadb_innodb_flush_log_at_trx_commit",
+        "mariadb_local_infile", "mariadb_sql_mode", "mariadb_log_bin", "mariadb_binlog_format", "mariadb_sync_binlog",
+        "mariadb_load_client_settings", "mariadb_load_sql", "mariadb_load_transaction_probe"
     };
 
-    private record Case(String database, String implementation, int batch) {
-        String mode() { if (implementation.equals("csvsql")) return "chunk_1000"; if (implementation.equals("copy")) return "native_reference"; return batch == 0 ? "unbatched" : "batch_1000"; }
+    record Case(String database, String implementation, int batch) {
+        String mode() {
+            return switch (implementation) {
+                case "pandas" -> "chunk_1000";
+                case "copy", "load_data" -> "native_reference";
+                case "scriptella", "jdbc" -> "batch_1000";
+                default -> throw new IllegalArgumentException("Unknown contender " + implementation);
+            };
+        }
         String key() { return database + "-" + implementation + "-" + mode(); }
     }
 
@@ -49,19 +62,17 @@ final class Experiment {
         metadata.setProperty("phase", measured ? "phase-3-public-comparison" : "smoke-only");
         metadata.setProperty("status", "running");
         Benchmark.storeMetadata(output, metadata);
-        List<Case> cases = new ArrayList<>();
-        for (String database : List.of("postgres", "mariadb")) {
-            for (String implementation : List.of("scriptella", "jdbc")) {
-                for (int batch : new int[] {0, 1000}) {
-                    cases.add(new Case(database, implementation, batch));
-                }
-            }
-            cases.add(new Case(database, "csvsql", 1000));
-            if (database.equals("postgres")) cases.add(new Case(database, "copy", 0));
-        }
+        List<Case> cases = cases();
+        metadata.setProperty("case_selection", "final-eight");
+        metadata.setProperty("case_definition", CASE_DEFINITION);
+        Benchmark.storeMetadata(output, metadata);
         try {
             Path smoke = prefix(prepared.fixture(), "smoke.csv", SMOKE_ROWS);
             Path warmup = prefix(prepared.fixture(), "warmup.csv", WARMUP_ROWS);
+            reset("mariadb");
+            Importer.verifyLoadDataTransaction(smoke, SMOKE_ROWS);
+            metadata.setProperty("mariadb_load_transaction_probe", "InnoDB: in_transaction=1; rows invisible before commit; rollback empty");
+            Benchmark.storeMetadata(output, metadata);
             // Every actual case is smoke-checked before any long measured import.
             for (Case test : cases) {
                 reset(test.database());
@@ -73,7 +84,7 @@ final class Experiment {
             if (!measured) {
                 metadata.setProperty("status", "success");
                 Benchmark.storeMetadata(output, metadata);
-                System.out.println("All eleven cases passed; smoke data is not measurement data.");
+                System.out.println("All " + cases.size() + " cases passed; smoke data is not measurement data.");
                 return;
             }
             Map<Case, Double> durations = new LinkedHashMap<>();
@@ -108,6 +119,17 @@ final class Experiment {
         }
     }
 
+    static List<Case> cases() {
+        List<Case> cases = new ArrayList<>();
+        for (String database : List.of("postgres", "mariadb")) {
+            cases.add(new Case(database, "scriptella", 1000));
+            cases.add(new Case(database, "jdbc", 1000));
+            cases.add(new Case(database, "pandas", 1000));
+            cases.add(new Case(database, database.equals("postgres") ? "copy" : "load_data", 0));
+        }
+        return cases;
+    }
+
     private static Path prefix(Path fixture, String name, int rows) throws Exception {
         Path result = fixture.resolveSibling(name);
         try (var reader = Files.newBufferedReader(fixture, StandardCharsets.UTF_8);
@@ -128,13 +150,13 @@ final class Experiment {
         ProcessBuilder builder = new ProcessBuilder("java", "-Duser.timezone=UTC", "-cp",
                 System.getProperty("java.class.path"), Importer.class.getName(), test.database(), test.implementation(),
                 Integer.toString(test.batch()), fixture.toString());
-        if (test.implementation().equals("csvsql")) {
+        if (test.implementation().equals("pandas")) {
             var uri = java.net.URI.create(Importer.url(test.database()).substring(5));
             String dialect = test.database().equals("postgres") ? "postgresql+psycopg2" : "mysql+pymysql";
             String user = java.net.URLEncoder.encode(Benchmark.env("DB_USER"), StandardCharsets.UTF_8);
             String password = java.net.URLEncoder.encode(Benchmark.env("DB_PASSWORD"), StandardCharsets.UTF_8);
             String url = dialect + "://" + user + ":" + password + "@" + uri.getHost() + ":" + uri.getPort() + uri.getPath();
-            builder = new ProcessBuilder("csvsql", "--db", url, "--tables", "csv_import", "--no-create", "--insert", "--chunk-size", "1000", fixture.toString());
+            builder = new ProcessBuilder("python", "/app/src/main/python/pandas_import.py", url, fixture.toString());
         }
         builder.redirectErrorStream(true).redirectOutput(log.toFile());
         long start = System.nanoTime();
@@ -194,7 +216,6 @@ final class Experiment {
         values.put("implementation", test.implementation());
         values.put("mode", test.mode());
         values.put("timing_boundary", "fresh_process_start_to_exit");
-        values.put("case_definition", "phase3-v4-pg-rewrite-true-fixed-order-warmup20000-csvsql-defaults-chunk1000-copy");
         values.put("core_artifact_version", metadata.getProperty("scriptella-core_version"));
         values.put("drivers_artifact_version", metadata.getProperty("scriptella-drivers_version"));
         values.put("postgres_jdbc_version", metadata.getProperty("postgresql_version"));
@@ -211,26 +232,16 @@ final class Experiment {
     }
 
     private static void printRatios(Map<Case, Double> durations) {
-        System.out.println("Ratios from this run (above 1 means the first named implementation/mode is faster):");
+        System.out.println("Ratios from this run; explicit duration formulas:");
         for (String database : List.of("postgres", "mariadb")) {
-            for (int batch : new int[] {0, 1000}) {
-                var scriptella = new Case(database, "scriptella", batch);
-                var jdbc = new Case(database, "jdbc", batch);
-                System.out.printf(Locale.ROOT, "%s Scriptella vs JDBC (%s): %.3fx (JDBC duration / Scriptella duration)%n",
-                        database, scriptella.mode(), durations.get(jdbc) / durations.get(scriptella));
-            }
-            for (int batch : new int[] {0, 1000}) {
-                double scriptella = durations.get(new Case(database, "scriptella", batch));
-                System.out.printf(Locale.ROOT, "%s Scriptella vs csvsql (%s): %.3fx (csvsql / Scriptella)%n", database,
-                        new Case(database, "scriptella", batch).mode(), durations.get(new Case(database, "csvsql", 1000)) / scriptella);
-                if (database.equals("postgres")) System.out.printf(Locale.ROOT, "%s COPY vs Scriptella (%s): %.3fx (Scriptella / COPY)%n", database,
-                        new Case(database, "scriptella", batch).mode(), scriptella / durations.get(new Case(database, "copy", 0)));
-            }
-            for (String implementation : List.of("scriptella", "jdbc")) {
-                System.out.printf(Locale.ROOT, "%s %s batching speedup (batch-1000 vs unbatched): %.3fx (unbatched duration / batch duration)%n",
-                        database, implementation, durations.get(new Case(database, implementation, 0))
-                                / durations.get(new Case(database, implementation, 1000)));
-            }
+            double scriptella = durations.get(new Case(database, "scriptella", 1000));
+            double jdbc = durations.get(new Case(database, "jdbc", 1000));
+            double pandas = durations.get(new Case(database, "pandas", 1000));
+            String nativeLoad = database.equals("postgres") ? "copy" : "load_data";
+            double nativeDuration = durations.get(new Case(database, nativeLoad, 0));
+            System.out.printf(Locale.ROOT, "%s Scriptella vs JDBC: %.3fx (JDBC / Scriptella)%n", database, jdbc / scriptella);
+            System.out.printf(Locale.ROOT, "%s Scriptella vs Pandas: %.3fx (Pandas / Scriptella)%n", database, pandas / scriptella);
+            System.out.printf(Locale.ROOT, "%s native %s vs Scriptella: %.3fx (Scriptella / native)%n", database, nativeLoad, scriptella / nativeDuration);
         }
     }
 }

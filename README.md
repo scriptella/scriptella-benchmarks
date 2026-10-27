@@ -2,9 +2,9 @@
 
 [Scriptella](https://github.com/scriptella/scriptella-etl) is a Java ETL tool that describes data
 flows in XML and SQL. This experiment compares its end-to-end CSV import times
-with handwritten JDBC, csvsql, and PostgreSQL's native COPY.
+with handwritten JDBC, Pandas + SQLAlchemy, and native database loaders.
 
-The reproducible eleven-case comparison imports one million rows into
+The reproducible eight-case comparison imports one million rows into
 PostgreSQL and MariaDB. This repository includes the implementations, raw
 measurements, independent import verification, and Docker Compose setup.
 
@@ -13,25 +13,59 @@ measurements, independent import verification, and Docker Compose setup.
 The goal is to establish a reproducible performance baseline for Scriptella
 and guide future improvements, starting with a simple CSV import workload.
 
-- **Scriptella:** declarative CSV parsing and SQL inserts, with and without batching.
+- **Scriptella:** declarative CSV parsing and SQL inserts, batch size 1000.
 - **Handwritten JDBC:** a Java baseline using the same database drivers,
-  with Apache Commons CSV for parsing and explicit typed bindings.
-- **csvsql:** the documented CSV-to-SQL command-line workflow from Python's csvkit.
-- **PostgreSQL COPY:** a native bulk-loading reference for direct CSV imports.
+  with Apache Commons CSV for parsing and explicit typed bindings, batch size 1000.
+- **Pandas + SQLAlchemy:** explicit typed CSV chunks inserted in one transaction.
+- **Native references:** PostgreSQL COPY and MariaDB LOAD DATA LOCAL INFILE.
 
 These are specific workflows and settings, not a ranking of CSV loaders.
-No transformations or MariaDB native loader are tested.
+No transformations or database-to-database transfers are tested.
 
-## Benchmark v4
+## Benchmark v5
 
-The current benchmark definition is **v4**: PostgreSQL explicitly enables
-`reWriteBatchedInserts=true` for both Scriptella and handwritten JDBC. This
-change follows the [repeated local follow-up](docs/results/2026-10-21-pg-rewrite/README.md).
-The fixture, batch size, transaction boundaries and verification are unchanged.
-MariaDB retains its driver defaults. Scriptella's general adapter default is
-unchanged. Keep v4 measurements separate from v3 and the false/true follow-up dataset.
+V5 replaces csvsql with Pandas + SQLAlchemy using 10,000-row CSV chunks and
+1,000-row inserts, preserving the v4 fixture, schema, transaction boundaries,
+warmup and independent verification. PostgreSQL retains
+`reWriteBatchedInserts=true` for both Java implementations. The final eight cases
+include six portable workflows and two native bulk-loading references.
+MariaDB LOCAL INFILE streams the same client-side fixture without copying it
+into the database container. Native loaders have different parsing/error
+semantics; see the [guide](docs/benchmark-guide.md#mariadb-native-load-data).
+Unbatched Scriptella/JDBC are retired: batching is the established baseline for
+this workload. There are no unbatched opt-in execution modes.
+Keep final eight-case measurements separate from earlier seven-/eleven-case v5
+experiments and historical v4 results; their case definitions are incompatible.
 
-## Current v4 results
+See the [contender registry](docs/contenders.md) for lifecycle decisions.
+Pandas is retained as a familiar portable reference following the v5 spike;
+the final measurements are summarized below. No v5 performance claims are based
+on historical v4 measurements.
+
+## Current v5 results
+
+Two complete local runs on an Intel Mac with Colima x86_64 (4 CPUs, 6 GiB)
+imported one million rows through all eight cases using Scriptella 1.6 on
+2026-10-26 local time (2026-10-27 UTC).
+
+![Benchmark v5: median end-to-end CSV import times from two compatible local runs. Bars show medians, dots show individual runs; the linear axis starts at zero. Lower is faster. COPY and LOAD DATA LOCAL are native bulk-loading references.](docs/results/2026-10-26-local-v5/overview.svg)
+
+| Database | Scriptella batch 1000 | JDBC batch 1000 | Pandas + SQLAlchemy | Native reference |
+|---|---:|---:|---:|---:|
+| PostgreSQL | 10.053 s | 7.579 s | 29.106 s | COPY: 2.366 s |
+| MariaDB | 9.227 s | 5.622 s | 19.609 s | LOAD DATA LOCAL: 3.039 s |
+
+Pandas took 2.90× and 2.13× Scriptella's time on PostgreSQL and MariaDB,
+respectively. JDBC was faster than Scriptella in both databases. Native loaders
+were fastest here and remain separate references with different parsing/error
+semantics. Every import passed independent row-count and sample-value checks.
+
+The [v5 report, individual measurements and reproduction instructions](docs/results/2026-10-26-local-v5/README.md)
+include dependency metadata and limitations. These are two observations on one
+local environment; no RAM measurements were taken. Historical CI results below
+come from a different environment and are not a controlled comparison with v5.
+
+## Historical v4 results
 
 One complete [GitHub Actions run](https://github.com/scriptella/scriptella-benchmarks/actions/runs/39688830534)
 on 2026-10-21 imported one million rows with Scriptella 1.6 on Ubuntu 24.04:
@@ -57,7 +91,7 @@ comparison with historical runs.
 ## Reproduce
 
 You need Git, a Docker-compatible runtime, and Docker Compose. The container
-build supplies Java, Maven, Python/csvkit, Scriptella, and JDBC dependencies;
+build supplies Java, Maven, Python/Pandas, Scriptella, and JDBC dependencies;
 a Scriptella source checkout or distribution ZIP is not required.
 
 Clone this repository and enter it:
@@ -67,7 +101,7 @@ git clone https://github.com/scriptella/scriptella-benchmarks.git
 cd scriptella-benchmarks
 ```
 
-First, smoke-test all eleven imports with 2,001-row prefixes, including a final
+First, smoke-test all eight imports with 2,001-row prefixes, including a final
 partial batch. This checks correctness without recording benchmark timings.
 The first invocation also downloads images and builds the benchmark image.
 
@@ -85,7 +119,7 @@ SCRIPTELLA_VERSION=1.6 docker compose up --build --force-recreate \
   --abort-on-container-exit --exit-code-from benchmark
 ```
 
-The historical local runs took about 33–35 minutes each; runtime varies by
+Historical v2 local runs took about 33–35 minutes each; v5 runtime varies by
 machine and Docker allocation. Results and diagnostics are saved under
 `results/run-<timestamp>-<id>/`. The command exits nonzero on failure and retains
 completed valid measurements and diagnostics.
