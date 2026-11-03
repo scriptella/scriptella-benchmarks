@@ -45,25 +45,48 @@ on historical v4 measurements.
 ## Current v5 results
 
 Two complete local runs on an Intel Mac with Colima x86_64 (4 CPUs, 6 GiB)
-imported one million rows through all eight cases using Scriptella 1.6 on
-2026-10-26 local time (2026-10-27 UTC).
+imported one million rows through all eight cases using Scriptella 1.7.0 on
+2026-11-03. That VM size is the local reference setup for quoted comparisons.
 
-![Benchmark v5: median end-to-end CSV import times from two compatible local runs. Bars show medians, dots show individual runs; the linear axis starts at zero. Lower is faster. COPY and LOAD DATA LOCAL are native bulk-loading references.](docs/results/2026-10-26-local-v5/overview.svg)
+![Benchmark v5: median end-to-end CSV import times from two compatible local runs. Bars show medians, dots show individual runs; the linear axis starts at zero. Lower is faster. COPY and LOAD DATA LOCAL are native bulk-loading references.](docs/results/2026-11-03-local-v5/overview.svg)
 
 | Database | Scriptella batch 1000 | JDBC batch 1000 | Pandas + SQLAlchemy | Native reference |
 |---|---:|---:|---:|---:|
-| PostgreSQL | 10.053 s | 7.579 s | 29.106 s | COPY: 2.366 s |
-| MariaDB | 9.227 s | 5.622 s | 19.609 s | LOAD DATA LOCAL: 3.039 s |
+| PostgreSQL | 8.747 s | 7.642 s | 31.551 s | COPY: 1.750 s |
+| MariaDB | 7.950 s | 5.755 s | 20.377 s | LOAD DATA LOCAL: 3.287 s |
 
-Pandas took 2.90× and 2.13× Scriptella's time on PostgreSQL and MariaDB,
+Pandas took 3.61× and 2.56× Scriptella's time on PostgreSQL and MariaDB,
 respectively. JDBC was faster than Scriptella in both databases. Native loaders
-were fastest here and remain separate references with different parsing/error
-semantics. Every import passed independent row-count and sample-value checks.
+were fastest here and remain separate references with different parsing and
+error semantics. Every import passed independent row-count and sample-value checks.
 
-The [v5 report, individual measurements and reproduction instructions](docs/results/2026-10-26-local-v5/README.md)
+The [v5 report, individual measurements and reproduction instructions](docs/results/2026-11-03-local-v5/README.md)
 include dependency metadata and limitations. These are two observations on one
 local environment; no RAM measurements were taken. Historical CI results below
 come from a different environment and are not a controlled comparison with v5.
+Earlier Scriptella 1.6 runs on a VM of this size remain in
+[2026-10-26-local-v5](docs/results/2026-10-26-local-v5/README.md).
+
+## Scriptella 1.6 and 1.7.0
+
+Four full v5 runs on the same 4-CPU, 6 GiB VM compared published Scriptella 1.6
+and 1.7.0: two runs per version in the order 1.6, 1.7.0, 1.7.0, 1.6. The table
+reports the median of the two Scriptella runs for each database; the individual
+values are shown in parentheses.
+
+| Database | Scriptella 1.6 | Scriptella 1.7.0 | Change in duration |
+|---|---:|---:|---:|
+| PostgreSQL | 14.604 s (13.603, 15.605) | 8.747 s (8.893, 8.601) | -40.1% |
+| MariaDB | 11.217 s (12.567, 9.867) | 7.950 s (8.200, 7.700) | -29.1% |
+
+Every import passed independent row-count and sample-value verification.
+Scriptella 1.7.0 was faster on both databases, and the runs did not overlap.
+With only two observations per release, the percentages describe this machine
+and workload. The comparison does not measure the JSON driver.
+
+The [comparison evidence](docs/results/2026-11-03-release-comparison/README.md)
+includes all eight case measurements from each run, preparation metadata and
+checksums.
 
 ## Historical v4 results
 
@@ -106,21 +129,22 @@ partial batch. This checks correctness without recording benchmark timings.
 The first invocation also downloads images and builds the benchmark image.
 
 ```sh
-BENCHMARK_COMMAND=smoke SCRIPTELLA_VERSION=1.6 docker compose up --build \
+BENCHMARK_COMMAND=smoke SCRIPTELLA_VERSION=1.7.0 docker compose up --build \
   --abort-on-container-exit --exit-code-from benchmark
 ```
 
 Run the full million-row comparison with a description of your environment:
 
 ```sh
-ENVIRONMENT_ID=my-machine-docker \
-ENVIRONMENT_DESCRIPTION='Describe CPU, architecture and Docker runtime' \
-SCRIPTELLA_VERSION=1.6 docker compose up --build --force-recreate \
+ENVIRONMENT_ID=intel-colima-4cpu-6gib \
+ENVIRONMENT_DESCRIPTION='Intel Mac Colima x86_64 4 CPUs 6 GiB' \
+SCRIPTELLA_VERSION=1.7.0 docker compose up --build --force-recreate \
   --abort-on-container-exit --exit-code-from benchmark
 ```
 
-Historical v2 local runs took about 33–35 minutes each; v5 runtime varies by
-machine and Docker allocation. Results and diagnostics are saved under
+Quoted local comparisons use an x86_64 Colima VM with 4 CPUs and 6 GiB of
+memory, and Scriptella 1.7.0. Historical v2 local runs took about 33–35 minutes
+each; v5 runtime varies by machine and Docker allocation. Results and diagnostics are saved under
 `results/run-<timestamp>-<id>/`. The command exits nonzero on failure and retains
 completed valid measurements and diagnostics.
 

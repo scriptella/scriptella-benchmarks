@@ -38,7 +38,7 @@ prefixes, including a final partial batch. It records no benchmark timings.
 The first invocation also downloads the images and builds the benchmark image.
 
 ```sh
-BENCHMARK_COMMAND=smoke SCRIPTELLA_VERSION=1.6 docker compose up --build \
+BENCHMARK_COMMAND=smoke SCRIPTELLA_VERSION=1.7.0 docker compose up --build \
   --abort-on-container-exit --exit-code-from benchmark
 ```
 
@@ -49,11 +49,15 @@ your machine and Docker allocation. Use `--force-recreate` to start fresh
 containers if you have already run the smoke check:
 
 ```sh
-ENVIRONMENT_ID=my-machine-docker \
-ENVIRONMENT_DESCRIPTION='Describe CPU, architecture and Docker runtime' \
-SCRIPTELLA_VERSION=1.6 docker compose up --build --force-recreate \
+ENVIRONMENT_ID=intel-colima-4cpu-6gib \
+ENVIRONMENT_DESCRIPTION='Intel Mac Colima x86_64 4 CPUs 6 GiB' \
+SCRIPTELLA_VERSION=1.7.0 docker compose up --build --force-recreate \
   --abort-on-container-exit --exit-code-from benchmark
 ```
+
+Quoted local comparisons use an x86_64 Colima VM with 4 CPUs and 6 GiB of
+memory. Keep that allocation for later local runs. The published v5 numbers use
+it with Scriptella 1.7.0.
 
 ### Preparation and output files
 

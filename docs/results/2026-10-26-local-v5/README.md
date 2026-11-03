@@ -1,4 +1,8 @@
-# Local CSV import results — final benchmark v5
+# Local CSV import results — Scriptella 1.6, 2026-10-26
+
+These Scriptella 1.6 runs are kept for reference. The quoted v5 results are the
+Scriptella 1.7.0 runs in
+[2026-11-03-local-v5](../2026-11-03-local-v5/README.md).
 
 Two compatible eight-case runs on 2026-10-26 local time (2026-10-27 UTC), using
 Scriptella **1.6**. These selected measurements are copied byte-for-byte from the
