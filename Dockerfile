@@ -1,5 +1,5 @@
 FROM maven:3.9.11-eclipse-temurin-17
-ARG SCRIPTELLA_VERSION=1.6
+ARG SCRIPTELLA_VERSION=1.7.0
 ARG BENCHMARK_REVISION=n/a
 RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-venv && rm -rf /var/lib/apt/lists/*
 RUN python3 -m venv /opt/pandas

@@ -33,7 +33,7 @@ services:
     build:
       context: .
       args:
-        SCRIPTELLA_VERSION: ${SCRIPTELLA_VERSION:-1.6}
+        SCRIPTELLA_VERSION: ${SCRIPTELLA_VERSION:-1.7.0}
         BENCHMARK_REVISION: ${BENCHMARK_REVISION:-n/a}
     depends_on:
       postgres:

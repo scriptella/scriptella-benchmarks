@@ -6,7 +6,7 @@ on:
       scriptella_version:
         description: Maven-published Scriptella release
         required: true
-        default: '1.6'
+        default: '1.7.0'
         type: string
 
 permissions:
@@ -30,7 +30,7 @@ jobs:
         shell: bash
         run: |
           [[ "$SCRIPTELLA_VERSION" =~ ^[0-9]+(\.[0-9]+){1,2}$ ]] || {
-            echo 'Use a numeric Maven-published release, for example 1.6.' >&2
+            echo 'Use a numeric Maven-published release, for example 1.7.0.' >&2
             exit 1
           }
       - name: Run default eight-case comparison

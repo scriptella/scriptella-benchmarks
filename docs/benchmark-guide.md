@@ -99,7 +99,7 @@ The Compose configuration accepts these environment variables:
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `SCRIPTELLA_VERSION` | `1.6` | Maven-published release included in the image. |
+| `SCRIPTELLA_VERSION` | `1.7.0` | Maven-published release included in the image. |
 | `POSTGRES_REWRITE_BATCHED_INSERTS` | `true` | Shared PostgreSQL connection property; false/true in the follow-up. |
 | `BENCHMARK_COMMAND` | `run` | Select `run`, `smoke`, or `prepare`. |
 | `ENVIRONMENT_ID` | `local-unspecified` | Identify the measurement environment. |
@@ -282,11 +282,14 @@ field-list parity with the Java aggregator and its Python regression tests run
 under `mvn-lite test`. Run the plot-input tests alone without plotting packages
 using `python3 -m unittest discover -s tools -p test_plot_data.py`.
 
+For rewrite follow-up charts, `tools/plot-overview.py` requires the run's
+`preparation.properties` with a `scriptella_version` entry for the chart label.
+
 
 ## GitHub Actions
 
 Use **Actions → CSV import benchmark → Run workflow**, with the numeric
-Maven-published `scriptella_version` input (default `1.6`). The manual workflow
+Maven-published `scriptella_version` input (default `1.7.0`). The manual workflow
 runs the same eight-case Compose experiment on `ubuntu-24.04`, generates a single-run
 report, and uploads measurements and diagnostics as a downloadable artifact.
 Completed measurements and logs are uploaded even if a later case fails.

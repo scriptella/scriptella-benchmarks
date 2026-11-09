@@ -9,7 +9,7 @@
   <properties>
     <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <scriptella.version>1.6</scriptella.version>
+    <scriptella.version>1.7.0</scriptella.version>
     <postgres.version>42.7.13</postgres.version>
     <mariadb.version>3.5.7</mariadb.version>
     <commons.csv.version>1.14.1</commons.csv.version>

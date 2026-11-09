@@ -23,6 +23,21 @@ with sources[0].open() as stream:
 if rows and 'rewrite' in rows[0]:
     if len(sources) != 1:
         raise ValueError('Rewrite overview requires one follow-up dataset')
+    properties = {}
+    metadata_path = sources[0].parent / 'preparation.properties'
+    if not metadata_path.is_file():
+        raise ValueError(f'{metadata_path}: required preparation metadata is missing')
+    for line in metadata_path.read_text().splitlines():
+        if '=' in line and not line.startswith(('#', '!')):
+            key, value = line.split('=', 1)
+            if key.strip() == 'scriptella_version':
+                if key.strip() in properties:
+                    raise ValueError('Duplicate Scriptella version in preparation metadata')
+                properties[key.strip()] = value.strip()
+    version = properties.get('scriptella_version')
+    if not version:
+        raise ValueError(f'{metadata_path}: missing scriptella_version')
+    scriptella_label = f'Scriptella {version}'
     groups = {}
     for row in rows:
         if row['verified'] != 'true' or row['rows'] != '1000000' or row['batch_size'] != '1000':
@@ -45,7 +60,7 @@ if rows and 'rewrite' in rows[0]:
                  ha='left', fontsize=19, weight='bold', color='#202320')
     fig.text(.04, .89, 'One million rows · batch size 1000 · median of three local runs',
              fontsize=11, color='#4d534e')
-    for ax, impl, label in zip(axes, ['scriptella', 'jdbc'], ['Scriptella 1.6', 'Handwritten JDBC']):
+    for ax, impl, label in zip(axes, ['scriptella', 'jdbc'], [scriptella_label, 'Handwritten JDBC']):
         ax.set_title(label, loc='left', weight='bold', pad=12)
         ax.set_xlim(0, 18)
         ax.set_ylim(2.65, -.65)
